@@ -1067,7 +1067,7 @@ bool ClangExpressionDeclMap::LookupLocalVariable(
   // Make sure that the variables are parsed so that we have the
   // declarations.
   StackFrame *frame = m_parser_vars->m_exe_ctx.GetFramePtr();
-  VariableListSP vars = frame->GetInScopeVariableList(true);
+  VariableListSP vars = frame->GetInScopeVariableList(false);
   for (size_t i = 0; i < vars->GetSize(); i++)
     vars->GetVariableAtIndex(i)->GetDecl();
 

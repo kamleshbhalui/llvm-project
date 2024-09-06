@@ -1059,7 +1059,7 @@ void InputSection::relocateNonAlloc(uint8_t *buf, Relocs<RelTy> rels) {
     // R_ABS/R_DTPREL and some other relocations can be used from non-SHF_ALLOC
     // sections.
     if (LLVM_LIKELY(expr == R_ABS) || expr == R_DTPREL || expr == R_GOTPLTREL ||
-        expr == R_RISCV_ADD) {
+        expr == R_RISCV_ADD || expr == R_TPREL) {
       target.relocateNoSym(bufLoc, type, SignExtend64<bits>(sym.getVA(addend)));
       continue;
     }

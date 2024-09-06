@@ -141,6 +141,7 @@ RelExpr AArch64::getRelExpr(RelType type, const Symbol &s,
   case R_AARCH64_TLSLE_MOVW_TPREL_G1:
   case R_AARCH64_TLSLE_MOVW_TPREL_G1_NC:
   case R_AARCH64_TLSLE_MOVW_TPREL_G2:
+  case R_AARCH64_TLS_TPREL64:
     return R_TPREL;
   case R_AARCH64_CALL26:
   case R_AARCH64_CONDBR19:
@@ -479,6 +480,7 @@ void AArch64::relocate(uint8_t *loc, const Relocation &rel,
     else
       write64(loc, val);
     break;
+    case R_AARCH64_TLS_TPREL64:
   case R_AARCH64_PREL64:
     write64(loc, val);
     break;

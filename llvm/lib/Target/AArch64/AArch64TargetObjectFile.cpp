@@ -39,6 +39,11 @@ const MCExpr *AArch64_ELFTargetObjectFile::getIndirectSymViaGOTPCRel(
   return MCBinaryExpr::createAdd(Res, Off, getContext());
 }
 
+const MCExpr *AArch64_ELFTargetObjectFile::getDebugThreadLocalSymbol(
+    const MCSymbol *Sym) const {
+  return MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_TPREL, getContext());
+}
+
 AArch64_MachoTargetObjectFile::AArch64_MachoTargetObjectFile() {
   SupportGOTPCRelWithOffset = false;
 }

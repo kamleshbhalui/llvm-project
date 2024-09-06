@@ -790,9 +790,14 @@ DynamicLoaderPOSIXDYLD::GetThreadLocalData(const lldb::ModuleSP module_sp,
     LLDB_LOGF(log, "GetThreadLocalData error: fail to read modid");
     return LLDB_INVALID_ADDRESS;
   }
-
+  const llvm::Triple &triple_ref =
+      m_process->GetTarget().GetArchitecture().GetTriple();
   // Lookup the DTV structure for this thread.
-  addr_t dtv_ptr = tp + metadata.dtv_offset;
+  addr_t dtv_ptr;
+  if (triple_ref.getOS() == llvm::Triple::Linux && triple_ref.getArch() == llvm::Triple::aarch64)
+    dtv_ptr = tp;
+  else
+    dtv_ptr = tp + metadata.dtv_offset;
   addr_t dtv = ReadPointer(dtv_ptr);
   if (dtv == LLDB_INVALID_ADDRESS) {
     LLDB_LOGF(log, "GetThreadLocalData error: fail to read dtv");

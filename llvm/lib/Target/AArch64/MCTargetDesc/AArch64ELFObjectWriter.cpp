@@ -121,7 +121,8 @@ unsigned AArch64ELFObjectWriter::getRelocType(MCContext &Ctx,
   assert((!Target.getSymA() ||
           Target.getSymA()->getKind() == MCSymbolRefExpr::VK_None ||
           Target.getSymA()->getKind() == MCSymbolRefExpr::VK_PLT ||
-          Target.getSymA()->getKind() == MCSymbolRefExpr::VK_GOTPCREL) &&
+          Target.getSymA()->getKind() == MCSymbolRefExpr::VK_GOTPCREL ||
+          Target.getSymA()->getKind() == MCSymbolRefExpr::VK_TPREL) &&
          "Should only be expression-level modifiers here");
 
   assert((!Target.getSymB() ||
@@ -220,6 +221,8 @@ unsigned AArch64ELFObjectWriter::getRelocType(MCContext &Ctx,
                             (IsAuth ? "AUTH_ABS64" : "ABS64") + Twine(')'));
         return ELF::R_AARCH64_NONE;
       }
+      if (Target.getAccessVariant() == MCSymbolRefExpr::VK_TPREL)
+       return ELF::R_AARCH64_TLS_TPREL64;
       return (IsAuth ? ELF::R_AARCH64_AUTH_ABS64 : ELF::R_AARCH64_ABS64);
     }
     case AArch64::fixup_aarch64_add_imm12:
