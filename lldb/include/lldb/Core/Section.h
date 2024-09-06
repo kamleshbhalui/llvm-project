@@ -66,6 +66,8 @@ public:
   lldb::SectionSP FindSectionByType(lldb::SectionType sect_type,
                                     bool check_children,
                                     size_t start_idx = 0) const;
+                                    
+  lldb::SectionSP FindThreadSpecificSection() const;
 
   lldb::SectionSP
   FindSectionContainingFileAddress(lldb::addr_t addr,

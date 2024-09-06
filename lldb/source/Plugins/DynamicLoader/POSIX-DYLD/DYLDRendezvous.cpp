@@ -745,7 +745,33 @@ const DYLDRendezvous::ThreadInfo &DYLDRendezvous::GetThreadInfo() {
                        m_thread_info.modid_offset);
     ok &= FindMetadata("_thread_db_dtv_t_pointer_val", eOffset,
                        m_thread_info.tls_offset);
+    Target *target = &m_process->GetTarget();
+    if (target) {
+      ObjectFile *obj_file = target->GetExecutableModule()->GetObjectFile();
+      Symtab *symtab = obj_file->GetSymtab();
+      SectionList *section_list = obj_file->GetSectionList();
+      SectionSP section_sp = section_list->FindThreadSpecificSection();
+// return s.getVA(0) - tls->p_memsz -
+//            ((-tls->p_vaddr - tls->p_memsz) & (tls->p_align - 1));
 
+offset_t tls_offset = section_sp->GetFileAddress() -  section_sp->GetByteSize() -  ((-section_sp->GetFileSize()-section_sp->GetByteSize()) &(section_sp->GetLog2Align()-1));
+      addr_t sect_file_addr = section_sp->GetFileAddress();
+  uint32_t symbol_idx = 0;
+                                            Log *log = GetLog(LLDBLog::DynamicLoader);
+
+    LLDB_LOGF(log, "Kamlesh1: %s, %"PRIu64, section_sp->GetName().AsCString(), tls_offset);
+    LLDB_LOGF(log, "Kamlesh2: %"PRIu32, m_thread_info.tls_offset);
+    m_thread_info.tls_offset = sect_file_addr;
+      LLDB_LOGF(log, "   Version: %" PRIu64, sect_file_addr);
+
+    if (Symbol *symbol =
+            symtab->FindSymbolWithType(eSymbolTypeData, Symtab::eDebugYes,
+                                       Symtab::eVisibilityAny, symbol_idx)) {
+
+  LLDB_LOGF(log, "   Kamlesh: %s", symbol->GetName().AsCString());
+    }
+
+    }
     if (ok)
       m_thread_info.valid = true;
   }

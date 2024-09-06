@@ -771,9 +771,10 @@ DynamicLoaderPOSIXDYLD::GetThreadLocalData(const lldb::ModuleSP module_sp,
             "GetThreadLocalData info: link_map=0x%" PRIx64
             ", thread info metadata: "
             "modid_offset=0x%" PRIx32 ", dtv_offset=0x%" PRIx32
-            ", tls_offset=0x%" PRIx32 ", dtv_slot_size=%" PRIx32 "\n",
+            ", tls_offset=0x%" PRIx32 ", dtv_slot_size=%" PRIx32
+            ", tls_file_addr=0x%"PRIx64 "\n",
             link_map, metadata.modid_offset, metadata.dtv_offset,
-            metadata.tls_offset, metadata.dtv_slot_size);
+            metadata.tls_offset, metadata.dtv_slot_size, tls_file_addr);
 
   // Get the thread pointer.
   addr_t tp = thread->GetThreadPointer();
@@ -801,12 +802,14 @@ DynamicLoaderPOSIXDYLD::GetThreadLocalData(const lldb::ModuleSP module_sp,
 
   // Find the TLS block for this module.
   addr_t dtv_slot = dtv + metadata.dtv_slot_size * modid;
-  addr_t tls_block = ReadPointer(dtv_slot + metadata.tls_offset);
+  addr_t tls_offset =  tls_file_addr-(lldb::addr_t)metadata.tls_offset;
+  addr_t tls_block = ReadPointer(dtv_slot + 0);
 
   LLDB_LOGF(log,
             "DynamicLoaderPOSIXDYLD::Performed TLS lookup: "
             "module=%s, link_map=0x%" PRIx64 ", tp=0x%" PRIx64
-            ", modid=%" PRId64 ", tls_block=0x%" PRIx64 "\n",
+            ", modid=%" PRId64 ", tls_block=0x%" PRIx64 
+            ", tls_offset=0x%"PRIx64 "\n",
             module_sp->GetObjectName().AsCString(""), link_map, tp,
             (int64_t)modid, tls_block);
 
@@ -814,7 +817,7 @@ DynamicLoaderPOSIXDYLD::GetThreadLocalData(const lldb::ModuleSP module_sp,
     LLDB_LOGF(log, "GetThreadLocalData error: fail to read tls_block");
     return LLDB_INVALID_ADDRESS;
   } else
-    return tls_block + tls_file_addr;
+    return tls_block + tls_offset;
 }
 
 void DynamicLoaderPOSIXDYLD::ResolveExecutableModule(

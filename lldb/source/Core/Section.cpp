@@ -608,6 +608,24 @@ SectionSP SectionList::FindSectionByType(SectionType sect_type,
   return sect_sp;
 }
 
+  lldb::SectionSP SectionList::FindThreadSpecificSection() const {
+    SectionSP sect_sp;
+    const_iterator sect_iter;
+    const_iterator end = m_sections.end();
+    for (sect_iter = m_sections.begin();
+         sect_iter != end; ++sect_iter) {
+      if ((*sect_iter)->IsThreadSpecific()) {
+        sect_sp = *sect_iter;
+        break;
+      } else {
+        sect_sp = (*sect_iter)->GetChildren().FindThreadSpecificSection();
+        if (sect_sp)
+          break;
+      }
+    }
+    return sect_sp;
+  }
+
 SectionSP SectionList::FindSectionContainingFileAddress(addr_t vm_addr,
                                                         uint32_t depth) const {
   SectionSP sect_sp;

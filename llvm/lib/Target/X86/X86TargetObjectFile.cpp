@@ -54,7 +54,7 @@ const MCExpr *X86_64MachoTargetObjectFile::getIndirectSymViaGOTPCRel(
 
 const MCExpr *X86ELFTargetObjectFile::getDebugThreadLocalSymbol(
     const MCSymbol *Sym) const {
-  return MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_DTPOFF, getContext());
+  return MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());
 }
 
 const MCExpr *X86_64ELFTargetObjectFile::getIndirectSymViaGOTPCRel(
