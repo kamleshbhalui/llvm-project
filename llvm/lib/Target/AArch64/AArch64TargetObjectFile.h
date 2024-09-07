@@ -35,6 +35,9 @@ public:
                                  MachineModuleInfo *MMI, const MCSymbol *RawSym,
                                  AArch64PACKey::ID Key,
                                  uint16_t Discriminator) const;
+  /// Describe a TLS variable address within debug info.
+  const MCExpr *getDebugThreadLocalSymbol(const MCSymbol *Sym) const override;
+
 };
 
 /// AArch64_MachoTargetObjectFile - This TLOF implementation is used for Darwin.

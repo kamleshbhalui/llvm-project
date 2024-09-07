@@ -220,6 +220,8 @@ unsigned AArch64ELFObjectWriter::getRelocType(MCContext &Ctx,
                             (IsAuth ? "AUTH_ABS64" : "ABS64") + Twine(')'));
         return ELF::R_AARCH64_NONE;
       }
+      if (Target.getAccessVariant() == MCSymbolRefExpr::VK_None)
+        return ELF::R_AARCH64_NONE;
       return (IsAuth ? ELF::R_AARCH64_AUTH_ABS64 : ELF::R_AARCH64_ABS64);
     }
     case AArch64::fixup_aarch64_add_imm12:

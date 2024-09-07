@@ -535,10 +535,11 @@ static uint32_t g_d31_invalidates[] = {fpu_v31, fpu_s31, LLDB_INVALID_REGNUM};
   }
 
 // Defines pointer authentication mask registers
-#define DEFINE_EXTENSION_REG(reg)                                              \
+#define DEFINE_EXTENSION_REG(reg, kind)                                        \
   {                                                                            \
     #reg, nullptr, 8, 0, lldb::eEncodingUint, lldb::eFormatHex,                \
-        KIND_ALL_INVALID, nullptr, nullptr, nullptr,                           \
+        LLDB_INVALID_REGNUM, LLDB_INVALID_REGNUM, kind,                        \
+        LLDB_INVALID_REGNUM, LLDB_INVALID_REGNUM, nullptr, nullptr, nullptr,   \
   }
 
 static lldb_private::RegisterInfo g_register_infos_arm64_le[] = {

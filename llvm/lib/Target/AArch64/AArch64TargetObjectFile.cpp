@@ -26,7 +26,7 @@ void AArch64_ELFTargetObjectFile::Initialize(MCContext &Ctx,
   TargetLoweringObjectFileELF::Initialize(Ctx, TM);
   // AARCH64 ELF ABI does not define static relocation type for TLS offset
   // within a module.  Do not generate AT_location for TLS variables.
-  SupportDebugThreadLocalLocation = false;
+  SupportDebugThreadLocalLocation = true;
 }
 
 const MCExpr *AArch64_ELFTargetObjectFile::getIndirectSymViaGOTPCRel(
@@ -37,6 +37,11 @@ const MCExpr *AArch64_ELFTargetObjectFile::getIndirectSymViaGOTPCRel(
       MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_GOTPCREL, getContext());
   const MCExpr *Off = MCConstantExpr::create(FinalOffset, getContext());
   return MCBinaryExpr::createAdd(Res, Off, getContext());
+}
+
+const MCExpr *AArch64_ELFTargetObjectFile::getDebugThreadLocalSymbol(
+    const MCSymbol *Sym) const {
+  return MCSymbolRefExpr::create(Sym, MCSymbolRefExpr::VK_None, getContext());
 }
 
 AArch64_MachoTargetObjectFile::AArch64_MachoTargetObjectFile() {
