@@ -683,56 +683,32 @@ VPInstruction *vputils::findCanonicalIVIncrement(VPlan &Plan) {
   VPRegionValue *CanIV = LoopRegion->getCanonicalIV();
   assert(CanIV && "Expected loop region to have a canonical IV");
 
-  VPSymbolicValue &VFxUF = Plan.getVFxUF();
+  // Structurally, the increment is the only user of the canonical IV that
+  // reaches the loop exit. Find the increment by walking the users of the
+  // canonical IV and checking which ones reach.
+  VPRecipeBase *Term = LoopRegion->getExitingBasicBlock()->getTerminator();
+  SmallPtrSet<VPValue *, 4> ReachesExit;
+  if (Term) {
+    SmallVector<VPValue *> Worklist;
+    append_range(Worklist, Term->operands());
 
-  // Check if \p Step matches the expected increment step, accounting for
-  // materialization of VFxUF and UF.
-  auto IsIncrementStep = [&](VPValue *Step) -> bool {
-    if (!VFxUF.isMaterialized())
-      return Step == &VFxUF;
-
-    VPSymbolicValue &UF = Plan.getUF();
-    if (!UF.isMaterialized())
-      return Step == &UF ||
-             match(Step, m_c_Mul(m_Specific(&Plan.getUF()),
-                                 m_VPInstruction<VPInstruction::VScale>()));
-
-    // Alias masking: step is number of active lanes of a dependence mask.
-    if (match(Step, m_ZExtOrTruncOrSelf(
-                        m_VPInstruction<VPInstruction::NumActiveLanes>())))
-      return true;
-
-    unsigned ConcreteUF = Plan.getConcreteUF();
-    // Fixed VF: step is just the concrete UF.
-    if (match(Step, m_SpecificInt(ConcreteUF)))
-      return true;
-
-    // Scalable VF: step involves VScale.
-    if (ConcreteUF == 1)
-      return match(Step, m_VPInstruction<VPInstruction::VScale>());
-    if (match(Step, m_c_Mul(m_SpecificInt(ConcreteUF),
-                            m_VPInstruction<VPInstruction::VScale>())))
-      return true;
-    // mul(VScale, ConcreteUF) may have been simplified to
-    // shl(VScale, log2(ConcreteUF)) when ConcreteUF is a power of 2.
-    return isPowerOf2_32(ConcreteUF) &&
-           match(Step, m_Shl(m_VPInstruction<VPInstruction::VScale>(),
-                             m_SpecificInt(Log2_32(ConcreteUF))));
-  };
-
+    while (!Worklist.empty()) {
+      VPValue *Cur = Worklist.pop_back_val();
+      if (!ReachesExit.insert(Cur).second)
+        continue;
+      VPRecipeBase *DefR = Cur->getDefiningRecipe();
+      if (DefR)
+        append_range(Worklist, DefR->operands());
+    }
+  }
   VPInstruction *Increment = nullptr;
   for (VPUser *U : CanIV->users()) {
-    VPValue *Step;
-    if (isa<VPInstruction>(U) &&
-        match(U, m_c_Add(m_Specific(CanIV), m_VPValue(Step))) &&
-        IsIncrementStep(Step)) {
+    if (isa<VPInstruction>(U) && ReachesExit.contains(cast<VPInstruction>(U)) &&
+        match(U, m_c_Add(m_Specific(CanIV), m_VPValue()))) {
       assert(!Increment && "There must be a unique increment");
       Increment = cast<VPInstruction>(U);
     }
   }
-
-  assert((!VFxUF.isMaterialized() || Increment) &&
-         "After materializing VFxUF, an increment must exist");
   assert((!Increment ||
           LoopRegion->hasCanonicalIVNUW() == Increment->hasNoUnsignedWrap()) &&
          "NUW flag in region and increment must match");
