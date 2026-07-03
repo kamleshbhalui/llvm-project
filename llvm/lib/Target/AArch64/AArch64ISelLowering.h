@@ -232,6 +232,10 @@ public:
 
   unsigned getMaxSupportedInterleaveFactor() const override { return 4; }
 
+  bool isInterleaveIntrinsicSupported(unsigned Factor, EVT VT) const override {
+    return VT.isScalableVector() || Factor == 3 || Factor % 2 == 0;
+  }
+
   bool lowerInterleavedLoad(Instruction *Load, Value *Mask,
                             ArrayRef<ShuffleVectorInst *> Shuffles,
                             ArrayRef<unsigned> Indices, unsigned Factor,

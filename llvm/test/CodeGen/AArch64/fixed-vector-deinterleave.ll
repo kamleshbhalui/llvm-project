@@ -3,21 +3,12 @@
 ; RUN: llc -mtriple=aarch64-none-linux-gnu -global-isel -global-isel-abort=0 %s -o - | FileCheck %s --check-prefixes=CHECK,CHECK-GI
 
 define {<2 x half>, <2 x half>} @vector_deinterleave_v2f16_v4f16(<4 x half> %vec) {
-; CHECK-SD-LABEL: vector_deinterleave_v2f16_v4f16:
-; CHECK-SD:       // %bb.0:
-; CHECK-SD-NEXT:    // kill: def $d0 killed $d0 def $q0
-; CHECK-SD-NEXT:    dup v1.2s, v0.s[1]
-; CHECK-SD-NEXT:    zip1 v2.4h, v0.4h, v1.4h
-; CHECK-SD-NEXT:    trn2 v1.4h, v0.4h, v1.4h
-; CHECK-SD-NEXT:    fmov d0, d2
-; CHECK-SD-NEXT:    ret
-;
-; CHECK-GI-LABEL: vector_deinterleave_v2f16_v4f16:
-; CHECK-GI:       // %bb.0:
-; CHECK-GI-NEXT:    uzp1 v2.4h, v0.4h, v0.4h
-; CHECK-GI-NEXT:    uzp2 v1.4h, v0.4h, v0.4h
-; CHECK-GI-NEXT:    fmov d0, d2
-; CHECK-GI-NEXT:    ret
+; CHECK-LABEL: vector_deinterleave_v2f16_v4f16:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp1 v2.4h, v0.4h, v0.4h
+; CHECK-NEXT:    uzp2 v1.4h, v0.4h, v0.4h
+; CHECK-NEXT:    fmov d0, d2
+; CHECK-NEXT:    ret
   %retval = call {<2 x half>, <2 x half>} @llvm.vector.deinterleave2.v4f16(<4 x half> %vec)
   ret {<2 x half>, <2 x half>}   %retval
 }
@@ -49,8 +40,8 @@ define {<2 x float>, <2 x float>} @vector_deinterleave_v2f32_v4f32(<4 x float> %
 ; CHECK-SD-LABEL: vector_deinterleave_v2f32_v4f32:
 ; CHECK-SD:       // %bb.0:
 ; CHECK-SD-NEXT:    mov d1, v0.d[1]
-; CHECK-SD-NEXT:    zip1 v2.2s, v0.2s, v1.2s
-; CHECK-SD-NEXT:    zip2 v1.2s, v0.2s, v1.2s
+; CHECK-SD-NEXT:    uzp1 v2.2s, v0.2s, v1.2s
+; CHECK-SD-NEXT:    uzp2 v1.2s, v0.2s, v1.2s
 ; CHECK-SD-NEXT:    fmov d0, d2
 ; CHECK-SD-NEXT:    ret
 ;
@@ -77,12 +68,19 @@ ret  {<4 x float>, <4 x float>}   %retval
 }
 
 define {<2 x double>, <2 x double>} @vector_deinterleave_v2f64_v4f64(<4 x double> %vec) {
-; CHECK-LABEL: vector_deinterleave_v2f64_v4f64:
-; CHECK:       // %bb.0:
-; CHECK-NEXT:    zip1 v2.2d, v0.2d, v1.2d
-; CHECK-NEXT:    zip2 v1.2d, v0.2d, v1.2d
-; CHECK-NEXT:    mov v0.16b, v2.16b
-; CHECK-NEXT:    ret
+; CHECK-SD-LABEL: vector_deinterleave_v2f64_v4f64:
+; CHECK-SD:       // %bb.0:
+; CHECK-SD-NEXT:    uzp1 v2.2d, v0.2d, v1.2d
+; CHECK-SD-NEXT:    uzp2 v1.2d, v0.2d, v1.2d
+; CHECK-SD-NEXT:    mov v0.16b, v2.16b
+; CHECK-SD-NEXT:    ret
+;
+; CHECK-GI-LABEL: vector_deinterleave_v2f64_v4f64:
+; CHECK-GI:       // %bb.0:
+; CHECK-GI-NEXT:    zip1 v2.2d, v0.2d, v1.2d
+; CHECK-GI-NEXT:    zip2 v1.2d, v0.2d, v1.2d
+; CHECK-GI-NEXT:    mov v0.16b, v2.16b
+; CHECK-GI-NEXT:    ret
   %retval = call {<2 x double>, <2 x double>} @llvm.vector.deinterleave2.v4f64(<4 x double> %vec)
   ret {<2 x double>, <2 x double>}   %retval
 }
@@ -123,12 +121,19 @@ define {<4 x i32>, <4 x i32>} @vector_deinterleave_v4i32_v8i32(<8 x i32> %vec) {
 }
 
 define {<2 x i64>, <2 x i64>} @vector_deinterleave_v2i64_v4i64(<4 x i64> %vec) {
-; CHECK-LABEL: vector_deinterleave_v2i64_v4i64:
-; CHECK:       // %bb.0:
-; CHECK-NEXT:    zip1 v2.2d, v0.2d, v1.2d
-; CHECK-NEXT:    zip2 v1.2d, v0.2d, v1.2d
-; CHECK-NEXT:    mov v0.16b, v2.16b
-; CHECK-NEXT:    ret
+; CHECK-SD-LABEL: vector_deinterleave_v2i64_v4i64:
+; CHECK-SD:       // %bb.0:
+; CHECK-SD-NEXT:    uzp1 v2.2d, v0.2d, v1.2d
+; CHECK-SD-NEXT:    uzp2 v1.2d, v0.2d, v1.2d
+; CHECK-SD-NEXT:    mov v0.16b, v2.16b
+; CHECK-SD-NEXT:    ret
+;
+; CHECK-GI-LABEL: vector_deinterleave_v2i64_v4i64:
+; CHECK-GI:       // %bb.0:
+; CHECK-GI-NEXT:    zip1 v2.2d, v0.2d, v1.2d
+; CHECK-GI-NEXT:    zip2 v1.2d, v0.2d, v1.2d
+; CHECK-GI-NEXT:    mov v0.16b, v2.16b
+; CHECK-GI-NEXT:    ret
   %retval = call {<2 x i64>, <2 x i64>} @llvm.vector.deinterleave2.v4i64(<4 x i64> %vec)
   ret {<2 x i64>, <2 x i64>}   %retval
 }
@@ -845,4 +850,103 @@ define {<8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8
   %ins7 = call <64 x bfloat> @llvm.vector.insert.v64bf16.v8bf16(<64 x bfloat> %ins6,  <8 x bfloat> %h, i64 56)
   %retval = call {<8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>} @llvm.vector.deinterleave8.v64bf16(<64 x bfloat> %ins7)
   ret {<8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>, <8 x bfloat>} %retval
+}
+
+define {<4 x i16>, <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16>} @vector_deinterleave5_v20i16(<4 x i16> %a, <4 x i16> %b, <4 x i16> %c, <4 x i16> %d, <4 x i16> %e) {
+; CHECK-LABEL: vector_deinterleave5_v20i16:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    fmov d6, d2
+; CHECK-NEXT:    // kill: def $d1 killed $d1 def $q1
+; CHECK-NEXT:    // kill: def $d3 killed $d3 def $q3
+; CHECK-NEXT:    adrp x8, .LCPI42_1
+; CHECK-NEXT:    adrp x9, .LCPI42_2
+; CHECK-NEXT:    fmov d5, d0
+; CHECK-NEXT:    ldr q0, [x8, :lo12:.LCPI42_1]
+; CHECK-NEXT:    adrp x8, .LCPI42_4
+; CHECK-NEXT:    ldr q7, [x8, :lo12:.LCPI42_4]
+; CHECK-NEXT:    adrp x10, .LCPI42_3
+; CHECK-NEXT:    ldr q2, [x9, :lo12:.LCPI42_2]
+; CHECK-NEXT:    // kill: def $d4 killed $d4 def $q4
+; CHECK-NEXT:    adrp x8, .LCPI42_0
+; CHECK-NEXT:    mov v5.d[1], v1.d[0]
+; CHECK-NEXT:    mov v6.d[1], v3.d[0]
+; CHECK-NEXT:    ldr q3, [x10, :lo12:.LCPI42_3]
+; CHECK-NEXT:    tbl v7.16b, { v5.16b, v6.16b }, v7.16b
+; CHECK-NEXT:    tbl v1.16b, { v5.16b, v6.16b }, v0.16b
+; CHECK-NEXT:    tbl v2.16b, { v5.16b, v6.16b }, v2.16b
+; CHECK-NEXT:    tbl v3.16b, { v5.16b, v6.16b }, v3.16b
+; CHECK-NEXT:    ldr q0, [x8, :lo12:.LCPI42_0]
+; CHECK-NEXT:    tbl v0.16b, { v5.16b, v6.16b }, v0.16b
+; CHECK-NEXT:    mov v7.h[3], v4.h[3]
+; CHECK-NEXT:    mov v1.h[3], v4.h[0]
+; CHECK-NEXT:    mov v2.h[3], v4.h[1]
+; CHECK-NEXT:    mov v3.h[3], v4.h[2]
+; CHECK-NEXT:    // kill: def $d0 killed $d0 killed $q0
+; CHECK-NEXT:    // kill: def $d1 killed $d1 killed $q1
+; CHECK-NEXT:    // kill: def $d2 killed $d2 killed $q2
+; CHECK-NEXT:    // kill: def $d3 killed $d3 killed $q3
+; CHECK-NEXT:    fmov d4, d7
+; CHECK-NEXT:    ret
+  %ins0 = call <20 x i16> @llvm.vector.insert.v20i16.v4i16(<20 x i16> poison, <4 x i16> %a, i64 0)
+  %ins1 = call <20 x i16> @llvm.vector.insert.v20i16.v4i16(<20 x i16> %ins0, <4 x i16> %b, i64 4)
+  %ins2 = call <20 x i16> @llvm.vector.insert.v20i16.v4i16(<20 x i16> %ins1, <4 x i16> %c, i64 8)
+  %ins3 = call <20 x i16> @llvm.vector.insert.v20i16.v4i16(<20 x i16> %ins2, <4 x i16> %d, i64 12)
+  %ins4 = call <20 x i16> @llvm.vector.insert.v20i16.v4i16(<20 x i16> %ins3, <4 x i16> %e, i64 16)
+  %retval = call {<4 x i16>, <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16>} @llvm.vector.deinterleave5.v20i16(<20 x i16> %ins4)
+  ret {<4 x i16>, <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16>} %retval
+}
+
+define {<4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>} @vector_deinterleave7_v28i8(<4 x i8> %a, <4 x i8> %b, <4 x i8> %c, <4 x i8> %d, <4 x i8> %e, <4 x i8> %f, <4 x i8> %g) {
+; CHECK-LABEL: vector_deinterleave7_v28i8:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp1 v19.8b, v0.8b, v1.8b
+; CHECK-NEXT:    uzp1 v18.8b, v2.8b, v3.8b
+; CHECK-NEXT:    // kill: def $d6 killed $d6 def $q6
+; CHECK-NEXT:    uzp1 v4.8b, v4.8b, v5.8b
+; CHECK-NEXT:    xtn v5.8b, v6.8h
+; CHECK-NEXT:    mov b7, v19.b[4]
+; CHECK-NEXT:    mov b16, v19.b[5]
+; CHECK-NEXT:    mov b17, v19.b[6]
+; CHECK-NEXT:    mov b0, v19.b[0]
+; CHECK-NEXT:    mov b1, v19.b[1]
+; CHECK-NEXT:    mov b2, v19.b[2]
+; CHECK-NEXT:    mov b3, v19.b[3]
+; CHECK-NEXT:    mov v7.b[2], v18.b[3]
+; CHECK-NEXT:    mov v16.b[2], v18.b[4]
+; CHECK-NEXT:    mov v17.b[2], v18.b[5]
+; CHECK-NEXT:    mov v0.b[2], v19.b[7]
+; CHECK-NEXT:    mov v1.b[2], v18.b[0]
+; CHECK-NEXT:    mov v2.b[2], v18.b[1]
+; CHECK-NEXT:    mov v3.b[2], v18.b[2]
+; CHECK-NEXT:    mov v7.b[4], v4.b[2]
+; CHECK-NEXT:    mov v16.b[4], v4.b[3]
+; CHECK-NEXT:    mov v17.b[4], v4.b[4]
+; CHECK-NEXT:    mov v0.b[4], v18.b[6]
+; CHECK-NEXT:    mov v1.b[4], v18.b[7]
+; CHECK-NEXT:    mov v2.b[4], v4.b[0]
+; CHECK-NEXT:    mov v3.b[4], v4.b[1]
+; CHECK-NEXT:    mov v7.b[6], v5.b[1]
+; CHECK-NEXT:    mov v16.b[6], v5.b[2]
+; CHECK-NEXT:    mov v17.b[6], v5.b[3]
+; CHECK-NEXT:    mov v0.b[6], v4.b[5]
+; CHECK-NEXT:    mov v1.b[6], v4.b[6]
+; CHECK-NEXT:    mov v2.b[6], v4.b[7]
+; CHECK-NEXT:    mov v3.b[6], v5.b[0]
+; CHECK-NEXT:    // kill: def $d0 killed $d0 killed $q0
+; CHECK-NEXT:    // kill: def $d1 killed $d1 killed $q1
+; CHECK-NEXT:    // kill: def $d2 killed $d2 killed $q2
+; CHECK-NEXT:    // kill: def $d3 killed $d3 killed $q3
+; CHECK-NEXT:    fmov d4, d7
+; CHECK-NEXT:    fmov d5, d16
+; CHECK-NEXT:    fmov d6, d17
+; CHECK-NEXT:    ret
+  %ins0 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> poison, <4 x i8> %a, i64 0)
+  %ins1 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> %ins0, <4 x i8> %b, i64 4)
+  %ins2 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> %ins1, <4 x i8> %c, i64 8)
+  %ins3 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> %ins2, <4 x i8> %d, i64 12)
+  %ins4 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> %ins3, <4 x i8> %e, i64 16)
+  %ins5 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> %ins4, <4 x i8> %f, i64 20)
+  %ins6 = call <28 x i8> @llvm.vector.insert.v28i8.v4i8(<28 x i8> %ins5, <4 x i8> %g, i64 24)
+  %retval = call {<4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>} @llvm.vector.deinterleave7.v28i8(<28 x i8> %ins6)
+  ret {<4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>, <4 x i8>} %retval
 }
