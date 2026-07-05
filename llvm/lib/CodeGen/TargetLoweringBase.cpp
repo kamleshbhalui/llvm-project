@@ -1245,6 +1245,10 @@ void TargetLoweringBase::initActions() {
     setOperationAction({ISD::VECTOR_SPLICE_LEFT, ISD::VECTOR_SPLICE_RIGHT}, VT,
                        Expand);
 
+    // deinterleave/interleave vector operations default to expand.
+    setOperationAction({ISD::VECTOR_INTERLEAVE, ISD::VECTOR_DEINTERLEAVE}, VT,
+                       Expand);
+
     // Only some target support this vector operation. Most need to expand it.
     setOperationAction(ISD::VECTOR_COMPRESS, VT, Expand);
 

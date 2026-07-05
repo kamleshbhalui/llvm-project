@@ -621,6 +621,9 @@ private:
   void addQRType(MVT VT);
 
   bool shouldExpandBuildVectorWithShuffles(EVT, unsigned) const override;
+  bool
+  shouldDecomposeVectorInterleaveDeinterleave(unsigned Opcode, EVT VT,
+                                              unsigned Factor) const override;
 
   SDValue lowerEHPadEntry(SDValue Chain, SDLoc const &DL,
                           SelectionDAG &DAG) const override;

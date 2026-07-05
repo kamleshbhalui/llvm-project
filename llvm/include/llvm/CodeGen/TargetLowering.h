@@ -568,6 +568,15 @@ public:
     return DefinedValues < 3;
   }
 
+  /// Return true if the target prefers to expand a fixed-length
+  /// VECTOR_INTERLEAVE / VECTOR_DEINTERLEAVE with a higher even factor into a
+  /// tree of smaller interleave/deinterleave operations.
+  virtual bool
+  shouldDecomposeVectorInterleaveDeinterleave(unsigned Opcode, EVT /*VT*/,
+                                              unsigned /*Factor*/) const {
+    return false;
+  }
+
   /// Return true if integer divide is usually cheaper than a sequence of
   /// several shifts, adds, and multiplies for this target.
   /// The definition of "cheaper" may depend on whether we're optimizing
@@ -5912,6 +5921,18 @@ public:
   /// Method for building the DAG expansion of ISD::VECTOR_SPLICE. This
   /// method accepts vectors as its arguments.
   SDValue expandVectorSplice(SDNode *Node, SelectionDAG &DAG) const;
+
+  /// Expands an ISD::VECTOR_DEINTERLEAVE / ISD::VECTOR_INTERLEAVE node with a
+  /// higher even factor into a tree of lower factor nodes, appending result
+  /// values to \p Results. Returns false if the node cannot be decomposed.
+  bool expandVectorInterleaveDeinterleaveByDecomposition(
+      SDNode *Node, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const;
+
+  /// Expands a fixed-length ISD::VECTOR_DEINTERLEAVE / ISD::VECTOR_INTERLEAVE
+  /// node into a sequence of ISD::VECTOR_SHUFFLE nodes, appending result \p
+  /// Results.
+  void expandFixedVectorInterleaveDeinterleaveToShuffle(
+      SDNode *Node, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const;
 
   /// Expand a vector VECTOR_COMPRESS into a sequence of extract element, store
   /// temporarily, advance store position, before re-loading the final vector.

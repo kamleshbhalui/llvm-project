@@ -88,6 +88,10 @@ void DAGTypeLegalizer::ScalarizeVectorResult(SDNode *N, unsigned ResNo) {
   case ISD::POISON:
   case ISD::UNDEF:             R = ScalarizeVecRes_UNDEF(N); break;
   case ISD::VECTOR_SHUFFLE:    R = ScalarizeVecRes_VECTOR_SHUFFLE(N); break;
+  case ISD::VECTOR_DEINTERLEAVE:
+  case ISD::VECTOR_INTERLEAVE:
+    ScalarizeVecRes_VECTOR_INTERLEAVE_DEINTERLEAVE(N);
+    break;
   case ISD::IS_FPCLASS:        R = ScalarizeVecRes_IS_FPCLASS(N); break;
   case ISD::ANY_EXTEND_VECTOR_INREG:
   case ISD::SIGN_EXTEND_VECTOR_INREG:
@@ -779,6 +783,18 @@ SDValue DAGTypeLegalizer::ScalarizeVecRes_VECTOR_SHUFFLE(SDNode *N) {
     return DAG.getUNDEF(N->getValueType(0).getVectorElementType());
   unsigned Op = !cast<ConstantSDNode>(Arg)->isZero();
   return GetScalarizedVector(N->getOperand(Op));
+}
+
+void DAGTypeLegalizer::ScalarizeVecRes_VECTOR_INTERLEAVE_DEINTERLEAVE(
+    SDNode *N) {
+  assert((N->getOpcode() == ISD::VECTOR_INTERLEAVE ||
+          N->getOpcode() == ISD::VECTOR_DEINTERLEAVE) &&
+         "Unexpected opcode");
+  assert(N->getNumValues() == N->getNumOperands() &&
+         "Expected matching result and operand counts");
+
+  for (unsigned I = 0, E = N->getNumValues(); I != E; ++I)
+    SetScalarizedVector(SDValue(N, I), GetScalarizedVector(N->getOperand(I)));
 }
 
 SDValue DAGTypeLegalizer::ScalarizeVecRes_FP_TO_XINT_SAT(SDNode *N) {
@@ -5323,6 +5339,9 @@ void DAGTypeLegalizer::WidenVectorResult(SDNode *N, unsigned ResNo) {
   case ISD::VECTOR_DEINTERLEAVE:
     WidenVecRes_VECTOR_DEINTERLEAVE(N);
     break;
+  case ISD::VECTOR_INTERLEAVE:
+    WidenVecRes_VECTOR_INTERLEAVE(N);
+    break;
 
   case ISD::ADD: case ISD::VP_ADD:
   case ISD::AND: case ISD::VP_AND:
@@ -6585,6 +6604,19 @@ SDValue DAGTypeLegalizer::WidenVecRes_CONCAT_VECTORS(SDNode *N) {
     }
   }
 
+  if (WidenVT.isScalableVector()) {
+    ElementCount InEC = InVT.getVectorElementCount();
+    SDValue Res = DAG.getPOISON(WidenVT);
+    for (unsigned I = 0; I < NumOperands; ++I) {
+      if (N->getOperand(I).isUndef())
+        continue;
+      Res = DAG.getInsertSubvector(
+          dl, Res, N->getOperand(I),
+          InEC.multiplyCoefficientBy(I).getKnownMinValue());
+    }
+    return Res;
+  }
+
   assert(!WidenVT.isScalableVector() &&
          "Cannot use build vectors to widen CONCAT_VECTOR result");
   unsigned WidenNumElts = WidenVT.getVectorNumElements();
@@ -7516,6 +7548,68 @@ void DAGTypeLegalizer::WidenVecRes_VECTOR_DEINTERLEAVE(SDNode *N) {
   // Set the widened results manually.
   for (unsigned Idx = 0U; Idx < Factor; ++Idx)
     SetWidenedVector(SDValue(N, Idx), NewRes.getValue(Idx));
+}
+
+void DAGTypeLegalizer::WidenVecRes_VECTOR_INTERLEAVE(SDNode *N) {
+  EVT VT = N->getValueType(0);
+  unsigned Factor = N->getNumOperands();
+  SDLoc DL(N);
+
+  EVT EltVT = VT.getVectorElementType();
+  ElementCount OrigEC = VT.getVectorElementCount();
+  EVT WidenVT = TLI.getTypeToTransformTo(*DAG.getContext(), VT);
+  ElementCount WidenEC = WidenVT.getVectorElementCount();
+
+  if (VT.isFixedLengthVector()) {
+    unsigned OrigNumElts = VT.getVectorNumElements();
+    unsigned WidenNumElts = WidenVT.getVectorNumElements();
+
+    SmallVector<SDValue, 8> WidenOps(Factor);
+    for (unsigned Idx = 0U; Idx < Factor; ++Idx)
+      WidenOps[Idx] = GetWidenedVector(N->getOperand(Idx));
+
+    EVT IdxVT = TLI.getVectorIdxTy(DAG.getDataLayout());
+    SDValue Undef = DAG.getUNDEF(EltVT);
+    for (unsigned Res = 0U; Res < Factor; ++Res) {
+      SmallVector<SDValue, 16> Elts(WidenNumElts, Undef);
+      for (unsigned J = 0U; J < OrigNumElts; ++J) {
+        unsigned Lane = Res * OrigNumElts + J;
+        Elts[J] = DAG.getNode(ISD::EXTRACT_VECTOR_ELT, DL, EltVT,
+                              WidenOps[Lane % Factor],
+                              DAG.getConstant(Lane / Factor, DL, IdxVT));
+      }
+      SetWidenedVector(SDValue(N, Res), DAG.getBuildVector(WidenVT, DL, Elts));
+    }
+    return;
+  }
+
+  SmallVector<SDValue, 8> WidenOps(Factor);
+  for (unsigned Idx = 0U; Idx < Factor; ++Idx)
+    WidenOps[Idx] = GetWidenedVector(N->getOperand(Idx));
+
+  SmallVector<EVT, 8> WidenVTs(Factor, WidenVT);
+  SDValue WidenRes =
+      DAG.getNode(ISD::VECTOR_INTERLEAVE, DL, WidenVTs, WidenOps);
+
+  // Re-pack the widened interleave results before extracting the widened
+  // original results. The widened operation groups lanes by WidenEC, but the
+  // original results start every OrigEC lanes.
+  EVT PackedWidenVT = EVT::getVectorVT(*DAG.getContext(), EltVT,
+                                       WidenEC.multiplyCoefficientBy(Factor));
+  SDValue PackedWidenVec = DAG.getUNDEF(PackedWidenVT);
+  for (unsigned Idx = 0U; Idx < Factor; ++Idx) {
+    PackedWidenVec = DAG.getInsertSubvector(
+        DL, PackedWidenVec, WidenRes.getValue(Idx),
+        WidenEC.multiplyCoefficientBy(Idx).getKnownMinValue());
+  }
+
+  for (unsigned Idx = 0U; Idx < Factor; ++Idx) {
+    SDValue OrigRes = DAG.getExtractSubvector(
+        DL, VT, PackedWidenVec,
+        OrigEC.multiplyCoefficientBy(Idx).getKnownMinValue());
+    SDValue Res = DAG.getInsertSubvector(DL, DAG.getUNDEF(WidenVT), OrigRes, 0);
+    SetWidenedVector(SDValue(N, Idx), Res);
+  }
 }
 
 SDValue DAGTypeLegalizer::WidenVecRes_SETCC(SDNode *N) {

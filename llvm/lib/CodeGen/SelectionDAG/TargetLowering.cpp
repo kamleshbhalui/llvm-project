@@ -13594,6 +13594,115 @@ SDValue TargetLowering::expandVectorSplice(SDNode *Node,
                      MachinePointerInfo::getUnknownStack(MF), Alignment);
 }
 
+bool TargetLowering::expandVectorInterleaveDeinterleaveByDecomposition(
+    SDNode *Node, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const {
+  unsigned Opcode = Node->getOpcode();
+  assert((Opcode == ISD::VECTOR_INTERLEAVE ||
+          Opcode == ISD::VECTOR_DEINTERLEAVE) &&
+         "Unexpected opcode!");
+
+  unsigned Factor = Node->getNumOperands();
+  if (Factor <= 2 || Factor % 2 != 0)
+    return false;
+
+  SDLoc DL(Node);
+  EVT VecVT = Node->getValueType(0);
+  SmallVector<EVT, 8> HalfVTs(Factor / 2, VecVT);
+
+  if (Opcode == ISD::VECTOR_DEINTERLEAVE) {
+    SmallVector<SDValue, 8> Ops(Node->ops());
+    // Deinterleave at Factor/2 so each result contains two factors
+    // interleaved:
+    //   a0b0 c0d0 a1b1 c1d1 -> [a0c0 b0d0] [a1c1 b1d1]
+    SDValue L = DAG.getNode(ISD::VECTOR_DEINTERLEAVE, DL, HalfVTs,
+                            ArrayRef(Ops).take_front(Factor / 2));
+    SDValue R = DAG.getNode(ISD::VECTOR_DEINTERLEAVE, DL, HalfVTs,
+                            ArrayRef(Ops).take_back(Factor / 2));
+    Results.resize(Factor);
+    // Deinterleave the 2 factors out:
+    //   [a0c0 a1c1] [b0d0 b1d1] -> a0a1 b0b1 c0c1 d0d1
+    for (unsigned I = 0; I < Factor / 2; I++) {
+      SDValue Deinterleave =
+          DAG.getNode(ISD::VECTOR_DEINTERLEAVE, DL, {VecVT, VecVT},
+                      {L.getValue(I), R.getValue(I)});
+      Results[I] = Deinterleave.getValue(0);
+      Results[I + Factor / 2] = Deinterleave.getValue(1);
+    }
+    return true;
+  }
+
+  SmallVector<SDValue, 8> LOps, ROps;
+  // Interleave so we have 2 factors per result:
+  //   a0a1 b0b1 c0c1 d0d1 -> [a0c0 b0d0] [a1c1 b1d1]
+  for (unsigned I = 0; I < Factor / 2; I++) {
+    SDValue Interleave =
+        DAG.getNode(ISD::VECTOR_INTERLEAVE, DL, {VecVT, VecVT},
+                    {Node->getOperand(I), Node->getOperand(I + Factor / 2)});
+    LOps.push_back(Interleave.getValue(0));
+    ROps.push_back(Interleave.getValue(1));
+  }
+  // Interleave at Factor/2:
+  //   [a0c0 b0d0] [a1c1 b1d1] -> a0b0 c0d0 a1b1 c1d1
+  SDValue L = DAG.getNode(ISD::VECTOR_INTERLEAVE, DL, HalfVTs, LOps);
+  SDValue R = DAG.getNode(ISD::VECTOR_INTERLEAVE, DL, HalfVTs, ROps);
+  for (unsigned I = 0; I < Factor / 2; I++)
+    Results.push_back(L.getValue(I));
+  for (unsigned I = 0; I < Factor / 2; I++)
+    Results.push_back(R.getValue(I));
+  return true;
+}
+
+void TargetLowering::expandFixedVectorInterleaveDeinterleaveToShuffle(
+    SDNode *Node, SmallVectorImpl<SDValue> &Results, SelectionDAG &DAG) const {
+  unsigned Opcode = Node->getOpcode();
+  assert((Opcode == ISD::VECTOR_INTERLEAVE ||
+          Opcode == ISD::VECTOR_DEINTERLEAVE) &&
+         "Unexpected opcode!");
+
+  SDLoc DL(Node);
+  unsigned Factor = Node->getNumOperands();
+  EVT SubVT = Node->getValueType(0);
+  assert(SubVT.isFixedLengthVector() &&
+         "Shuffle expansion only supports fixed-length vectors!");
+  SmallVector<SDValue, 8> Ops(Node->op_begin(), Node->op_end());
+  Results.reserve(Factor);
+
+  unsigned SubNumElts = SubVT.getVectorNumElements();
+
+  // Concatenate the operands into a single wide vector that the shuffles
+  // operate on.
+  EVT WideVT = EVT::getVectorVT(*DAG.getContext(), SubVT.getVectorElementType(),
+                                SubNumElts * Factor);
+  SDValue Wide = DAG.getNode(ISD::CONCAT_VECTORS, DL, WideVT, Ops);
+  SDValue Undef = DAG.getUNDEF(WideVT);
+
+  if (Opcode == ISD::VECTOR_INTERLEAVE) {
+    // Interleave the factors into one wide vector, then split it back into the
+    // per-factor results:
+    //   a0 a1 .. | b0 b1 .. -> a0 b0 a1 b1 ..
+    SDValue Shuffle = DAG.getVectorShuffle(
+        WideVT, DL, Wide, Undef, createInterleaveMask(SubNumElts, Factor));
+    for (unsigned I = 0; I != Factor; ++I)
+      Results.push_back(
+          DAG.getNode(ISD::EXTRACT_SUBVECTOR, DL, SubVT, Shuffle,
+                      DAG.getVectorIdxConstant(I * SubNumElts, DL)));
+    return;
+  }
+
+  // Deinterleave the wide vector into the per-factor streams. Each result
+  // gathers every Factor'th element starting at its factor index:
+  //   a0 b0 a1 b1 .. -> a0 a1 .. | b0 b1 ..
+  SDValue Idx0 = DAG.getVectorIdxConstant(0, DL);
+  for (unsigned I = 0; I != Factor; ++I) {
+    SmallVector<int, 16> Mask(SubNumElts * Factor, -1);
+    for (unsigned J = 0; J != SubNumElts; ++J)
+      Mask[J] = I + J * Factor;
+    SDValue Shuffle = DAG.getVectorShuffle(WideVT, DL, Wide, Undef, Mask);
+    Results.push_back(
+        DAG.getNode(ISD::EXTRACT_SUBVECTOR, DL, SubVT, Shuffle, Idx0));
+  }
+}
+
 SDValue TargetLowering::expandVECTOR_COMPRESS(SDNode *Node,
                                               SelectionDAG &DAG) const {
   SDLoc DL(Node);

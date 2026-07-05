@@ -17448,6 +17448,14 @@ bool AArch64TargetLowering::shouldExpandBuildVectorWithShuffles(
   return TargetLowering::shouldExpandBuildVectorWithShuffles(VT, DefinedValues);
 }
 
+bool AArch64TargetLowering::shouldDecomposeVectorInterleaveDeinterleave(
+    unsigned Opcode, EVT VT, unsigned Factor) const {
+  assert((Opcode == ISD::VECTOR_INTERLEAVE ||
+          Opcode == ISD::VECTOR_DEINTERLEAVE) &&
+         "Unexpected opcode!");
+  return Factor % 2 == 0;
+}
+
 bool AArch64TargetLowering::isShuffleMaskLegal(ArrayRef<int> M, EVT VT) const {
   // Currently no fixed length shuffles that require SVE are legal.
   if (useSVEForFixedLengthVectorVT(VT, !Subtarget->isNeonAvailable()))

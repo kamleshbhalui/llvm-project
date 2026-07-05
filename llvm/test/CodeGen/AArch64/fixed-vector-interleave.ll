@@ -621,20 +621,21 @@ define <12 x double> @interleave6_v12f64(<2 x double> %vec0, <2 x double> %vec1,
 ; CHECK-NEXT:    .cfi_def_cfa_offset 96
 ; CHECK-NEXT:    zip1 v18.2d, v2.2d, v5.2d
 ; CHECK-NEXT:    zip2 v7.2d, v2.2d, v5.2d
-; CHECK-NEXT:    mov x9, sp
+; CHECK-NEXT:    add x9, sp, #48
 ; CHECK-NEXT:    zip1 v17.2d, v1.2d, v4.2d
 ; CHECK-NEXT:    zip2 v6.2d, v1.2d, v4.2d
 ; CHECK-NEXT:    zip1 v16.2d, v0.2d, v3.2d
 ; CHECK-NEXT:    zip2 v5.2d, v0.2d, v3.2d
 ; CHECK-NEXT:    st3 { v16.2d, v17.2d, v18.2d }, [x9]
-; CHECK-NEXT:    add x9, sp, #48
+; CHECK-NEXT:    mov x9, sp
 ; CHECK-NEXT:    st3 { v5.2d, v6.2d, v7.2d }, [x9]
-; CHECK-NEXT:    ldp q2, q0, [sp, #64]
-; CHECK-NEXT:    ldp q5, q1, [sp, #32]
-; CHECK-NEXT:    ldp q3, q4, [sp]
-; CHECK-NEXT:    stp q2, q0, [x8, #64]
+; CHECK-NEXT:    ldp q2, q0, [sp, #16]
+; CHECK-NEXT:    ldr q1, [sp]
+; CHECK-NEXT:    ldp q3, q4, [sp, #48]
+; CHECK-NEXT:    ldr q5, [sp, #80]
 ; CHECK-NEXT:    stp q5, q1, [x8, #32]
 ; CHECK-NEXT:    stp q3, q4, [x8]
+; CHECK-NEXT:    stp q2, q0, [x8, #64]
 ; CHECK-NEXT:    add sp, sp, #96
 ; CHECK-NEXT:    ret
   %retval = call <12 x double> @llvm.vector.interleave6.v12f64(<2 x double> %vec0, <2 x double> %vec1, <2 x double> %vec2, <2 x double> %vec3, <2 x double> %vec4, <2 x double> %vec5)
@@ -648,20 +649,21 @@ define <24 x i32> @interleave6_v24i32(<4 x i32> %vec0, <4 x i32> %vec1, <4 x i32
 ; CHECK-NEXT:    .cfi_def_cfa_offset 96
 ; CHECK-NEXT:    zip1 v18.4s, v2.4s, v5.4s
 ; CHECK-NEXT:    zip2 v7.4s, v2.4s, v5.4s
-; CHECK-NEXT:    mov x9, sp
+; CHECK-NEXT:    add x9, sp, #48
 ; CHECK-NEXT:    zip1 v17.4s, v1.4s, v4.4s
 ; CHECK-NEXT:    zip2 v6.4s, v1.4s, v4.4s
 ; CHECK-NEXT:    zip1 v16.4s, v0.4s, v3.4s
 ; CHECK-NEXT:    zip2 v5.4s, v0.4s, v3.4s
 ; CHECK-NEXT:    st3 { v16.4s, v17.4s, v18.4s }, [x9]
-; CHECK-NEXT:    add x9, sp, #48
+; CHECK-NEXT:    mov x9, sp
 ; CHECK-NEXT:    st3 { v5.4s, v6.4s, v7.4s }, [x9]
-; CHECK-NEXT:    ldp q2, q0, [sp, #64]
-; CHECK-NEXT:    ldp q5, q1, [sp, #32]
-; CHECK-NEXT:    ldp q3, q4, [sp]
-; CHECK-NEXT:    stp q2, q0, [x8, #64]
+; CHECK-NEXT:    ldp q2, q0, [sp, #16]
+; CHECK-NEXT:    ldr q1, [sp]
+; CHECK-NEXT:    ldp q3, q4, [sp, #48]
+; CHECK-NEXT:    ldr q5, [sp, #80]
 ; CHECK-NEXT:    stp q5, q1, [x8, #32]
 ; CHECK-NEXT:    stp q3, q4, [x8]
+; CHECK-NEXT:    stp q2, q0, [x8, #64]
 ; CHECK-NEXT:    add sp, sp, #96
 ; CHECK-NEXT:    ret
   %retval = call <24 x i32> @llvm.vector.interleave6.v24i32(<4 x i32> %vec0, <4 x i32> %vec1, <4 x i32> %vec2, <4 x i32> %vec3, <4 x i32> %vec4, <4 x i32> %vec5)
@@ -675,17 +677,18 @@ define <12 x i32> @interleave6_v12i32(<2 x i32> %vec0, <2 x i32> %vec1, <2 x i32
 ; CHECK-NEXT:    .cfi_def_cfa_offset 48
 ; CHECK-NEXT:    zip1 v18.2s, v2.2s, v5.2s
 ; CHECK-NEXT:    zip2 v7.2s, v2.2s, v5.2s
-; CHECK-NEXT:    mov x9, sp
+; CHECK-NEXT:    add x9, sp, #24
 ; CHECK-NEXT:    zip1 v17.2s, v1.2s, v4.2s
 ; CHECK-NEXT:    zip2 v6.2s, v1.2s, v4.2s
 ; CHECK-NEXT:    zip1 v16.2s, v0.2s, v3.2s
 ; CHECK-NEXT:    zip2 v5.2s, v0.2s, v3.2s
 ; CHECK-NEXT:    st3 { v16.2s, v17.2s, v18.2s }, [x9]
-; CHECK-NEXT:    add x9, sp, #24
+; CHECK-NEXT:    mov x9, sp
 ; CHECK-NEXT:    st3 { v5.2s, v6.2s, v7.2s }, [x9]
-; CHECK-NEXT:    ldp d1, d0, [sp, #32]
-; CHECK-NEXT:    ldp d3, d2, [sp, #16]
-; CHECK-NEXT:    ldp d5, d4, [sp]
+; CHECK-NEXT:    ldp d1, d0, [sp, #8]
+; CHECK-NEXT:    ldr d2, [sp]
+; CHECK-NEXT:    ldp d4, d3, [sp, #32]
+; CHECK-NEXT:    ldr d5, [sp, #24]
 ; CHECK-NEXT:    mov v1.d[1], v0.d[0]
 ; CHECK-NEXT:    mov v3.d[1], v2.d[0]
 ; CHECK-NEXT:    mov v5.d[1], v4.d[0]
@@ -704,17 +707,18 @@ define <24 x i16> @interleave6_v24i16(<4 x i16> %vec0, <4 x i16> %vec1, <4 x i16
 ; CHECK-NEXT:    .cfi_def_cfa_offset 48
 ; CHECK-NEXT:    zip1 v18.4h, v2.4h, v5.4h
 ; CHECK-NEXT:    zip2 v7.4h, v2.4h, v5.4h
-; CHECK-NEXT:    mov x9, sp
+; CHECK-NEXT:    add x9, sp, #24
 ; CHECK-NEXT:    zip1 v17.4h, v1.4h, v4.4h
 ; CHECK-NEXT:    zip2 v6.4h, v1.4h, v4.4h
 ; CHECK-NEXT:    zip1 v16.4h, v0.4h, v3.4h
 ; CHECK-NEXT:    zip2 v5.4h, v0.4h, v3.4h
 ; CHECK-NEXT:    st3 { v16.4h, v17.4h, v18.4h }, [x9]
-; CHECK-NEXT:    add x9, sp, #24
+; CHECK-NEXT:    mov x9, sp
 ; CHECK-NEXT:    st3 { v5.4h, v6.4h, v7.4h }, [x9]
-; CHECK-NEXT:    ldp d1, d0, [sp, #32]
-; CHECK-NEXT:    ldp d3, d2, [sp, #16]
-; CHECK-NEXT:    ldp d5, d4, [sp]
+; CHECK-NEXT:    ldp d1, d0, [sp, #8]
+; CHECK-NEXT:    ldr d2, [sp]
+; CHECK-NEXT:    ldp d4, d3, [sp, #32]
+; CHECK-NEXT:    ldr d5, [sp, #24]
 ; CHECK-NEXT:    mov v1.d[1], v0.d[0]
 ; CHECK-NEXT:    mov v3.d[1], v2.d[0]
 ; CHECK-NEXT:    mov v5.d[1], v4.d[0]
@@ -812,4 +816,97 @@ define <32 x i16> @interleave8_v32i16(<4 x i16> %vec0, <4 x i16> %vec1, <4 x i16
 ; CHECK-NEXT:    ret
   %retval = call <32 x i16> @llvm.vector.interleave8.v32i16(<4 x i16> %vec0, <4 x i16> %vec1, <4 x i16> %vec2, <4 x i16> %vec3, <4 x i16> %vec4, <4 x i16> %vec5, <4 x i16> %vec6, <4 x i16> %vec7)
   ret <32 x i16> %retval
+}
+
+
+define <20 x i16> @interleave5_v20i16(<4 x i16> %vec0, <4 x i16> %vec1, <4 x i16> %vec2, <4 x i16> %vec3, <4 x i16> %vec4) {
+; CHECK-LABEL: interleave5_v20i16:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    // kill: def $d4 killed $d4 killed $q3_q4 def $q3_q4
+; CHECK-NEXT:    fmov d5, d3
+; CHECK-NEXT:    fmov d7, d2
+; CHECK-NEXT:    // kill: def $d1 killed $d1 def $q1
+; CHECK-NEXT:    adrp x9, .LCPI45_0
+; CHECK-NEXT:    fmov d6, d0
+; CHECK-NEXT:    ldr q0, [x9, :lo12:.LCPI45_0]
+; CHECK-NEXT:    adrp x9, .LCPI45_1
+; CHECK-NEXT:    adrp x10, .LCPI45_3
+; CHECK-NEXT:    ldr q2, [x10, :lo12:.LCPI45_3]
+; CHECK-NEXT:    mov v7.d[1], v5.d[0]
+; CHECK-NEXT:    mov v6.d[1], v1.d[0]
+; CHECK-NEXT:    ldr q1, [x9, :lo12:.LCPI45_1]
+; CHECK-NEXT:    adrp x9, .LCPI45_2
+; CHECK-NEXT:    tbl v0.16b, { v6.16b, v7.16b }, v0.16b
+; CHECK-NEXT:    tbl v2.16b, { v6.16b, v7.16b }, v2.16b
+; CHECK-NEXT:    mov v0.h[3], v4.h[3]
+; CHECK-NEXT:    tbl v3.16b, { v6.16b, v7.16b }, v1.16b
+; CHECK-NEXT:    ldr q1, [x9, :lo12:.LCPI45_2]
+; CHECK-NEXT:    mov v2.h[4], v4.h[0]
+; CHECK-NEXT:    tbl v1.16b, { v3.16b, v4.16b }, v1.16b
+; CHECK-NEXT:    str d0, [x8, #32]
+; CHECK-NEXT:    stp q2, q1, [x8]
+; CHECK-NEXT:    ret
+  %retval = call <20 x i16> @llvm.vector.interleave5.v20i16(<4 x i16> %vec0, <4 x i16> %vec1, <4 x i16> %vec2, <4 x i16> %vec3, <4 x i16> %vec4)
+  ret <20 x i16> %retval
+}
+
+define <28 x i8> @interleave7_v28i8(<4 x i8> %vec0, <4 x i8> %vec1, <4 x i8> %vec2, <4 x i8> %vec3, <4 x i8> %vec4, <4 x i8> %vec5, <4 x i8> %vec6) {
+; CHECK-LABEL: interleave7_v28i8:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    fmov d19, d6
+; CHECK-NEXT:    // kill: def $d3 killed $d3 def $q3
+; CHECK-NEXT:    // kill: def $d1 killed $d1 def $q1
+; CHECK-NEXT:    adrp x9, .LCPI46_0
+; CHECK-NEXT:    // kill: def $d5 killed $d5 def $q5
+; CHECK-NEXT:    adrp x10, .LCPI46_6
+; CHECK-NEXT:    fmov d18, d4
+; CHECK-NEXT:    fmov d17, d2
+; CHECK-NEXT:    fmov d16, d0
+; CHECK-NEXT:    ldr q0, [x9, :lo12:.LCPI46_0]
+; CHECK-NEXT:    adrp x9, .LCPI46_1
+; CHECK-NEXT:    mov v17.d[1], v3.d[0]
+; CHECK-NEXT:    ldr q3, [x10, :lo12:.LCPI46_6]
+; CHECK-NEXT:    adrp x10, .LCPI46_9
+; CHECK-NEXT:    mov v16.d[1], v1.d[0]
+; CHECK-NEXT:    ldr q1, [x9, :lo12:.LCPI46_1]
+; CHECK-NEXT:    adrp x9, .LCPI46_5
+; CHECK-NEXT:    ldr q2, [x9, :lo12:.LCPI46_5]
+; CHECK-NEXT:    adrp x9, .LCPI46_2
+; CHECK-NEXT:    ldr q4, [x9, :lo12:.LCPI46_2]
+; CHECK-NEXT:    adrp x9, .LCPI46_7
+; CHECK-NEXT:    tbl v0.16b, { v16.16b, v17.16b }, v0.16b
+; CHECK-NEXT:    mov v18.d[1], v5.d[0]
+; CHECK-NEXT:    tbl v2.16b, { v16.16b, v17.16b }, v2.16b
+; CHECK-NEXT:    tbl v1.16b, { v18.16b, v19.16b }, v1.16b
+; CHECK-NEXT:    tbl v3.16b, { v18.16b, v19.16b }, v3.16b
+; CHECK-NEXT:    bsl v4.16b, v0.16b, v1.16b
+; CHECK-NEXT:    ldr q0, [x9, :lo12:.LCPI46_7]
+; CHECK-NEXT:    adrp x9, .LCPI46_3
+; CHECK-NEXT:    ldr q1, [x9, :lo12:.LCPI46_3]
+; CHECK-NEXT:    adrp x9, .LCPI46_8
+; CHECK-NEXT:    bsl v0.16b, v2.16b, v3.16b
+; CHECK-NEXT:    ldr q3, [x9, :lo12:.LCPI46_8]
+; CHECK-NEXT:    adrp x9, .LCPI46_10
+; CHECK-NEXT:    ldr q7, [x9, :lo12:.LCPI46_10]
+; CHECK-NEXT:    adrp x9, .LCPI46_4
+; CHECK-NEXT:    mov d5, v4.d[1]
+; CHECK-NEXT:    tbl v3.16b, { v16.16b, v17.16b }, v3.16b
+; CHECK-NEXT:    tbl v6.16b, { v17.16b, v18.16b }, v1.16b
+; CHECK-NEXT:    ldr q1, [x10, :lo12:.LCPI46_9]
+; CHECK-NEXT:    mov d0, v0.d[1]
+; CHECK-NEXT:    tbl v1.16b, { v18.16b, v19.16b }, v1.16b
+; CHECK-NEXT:    mov v6.h[3], v19.h[3]
+; CHECK-NEXT:    ldr q16, [x9, :lo12:.LCPI46_4]
+; CHECK-NEXT:    mov v2.d[1], v0.d[0]
+; CHECK-NEXT:    mov v0.16b, v7.16b
+; CHECK-NEXT:    bsl v0.16b, v3.16b, v1.16b
+; CHECK-NEXT:    tbl v1.16b, { v4.16b, v5.16b, v6.16b }, v16.16b
+; CHECK-NEXT:    uzp1 v0.16b, v2.16b, v0.16b
+; CHECK-NEXT:    mov s2, v1.s[2]
+; CHECK-NEXT:    str d1, [x8, #16]
+; CHECK-NEXT:    str q0, [x8]
+; CHECK-NEXT:    str s2, [x8, #24]
+; CHECK-NEXT:    ret
+  %retval = call <28 x i8> @llvm.vector.interleave7.v28i8(<4 x i8> %vec0, <4 x i8> %vec1, <4 x i8> %vec2, <4 x i8> %vec3, <4 x i8> %vec4, <4 x i8> %vec5, <4 x i8> %vec6)
+  ret <28 x i8> %retval
 }

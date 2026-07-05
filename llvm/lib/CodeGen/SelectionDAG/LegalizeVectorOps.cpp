@@ -491,6 +491,12 @@ SDValue VectorLegalizer::LegalizeOp(SDValue Op) {
   case ISD::MASKED_SREM:
     Action = TLI.getOperationAction(Node->getOpcode(), Node->getValueType(0));
     break;
+  case ISD::VECTOR_INTERLEAVE:
+  case ISD::VECTOR_DEINTERLEAVE: {
+    EVT VT = Node->getValueType(0);
+    Action = TLI.getOperationAction(Node->getOpcode(), VT);
+    break;
+  }
   case ISD::SMULFIX:
   case ISD::SMULFIXSAT:
   case ISD::UMULFIX:
@@ -1100,6 +1106,18 @@ void VectorLegalizer::Expand(SDNode *Node, SmallVectorImpl<SDValue> &Results) {
     // Otherwise canonicalize the whole vector.
     SDValue Mul = TLI.expandFCANONICALIZE(Node, DAG);
     Results.push_back(Mul);
+    return;
+  }
+  case ISD::VECTOR_INTERLEAVE:
+  case ISD::VECTOR_DEINTERLEAVE: {
+    if (TLI.shouldDecomposeVectorInterleaveDeinterleave(
+            Node->getOpcode(), Node->getValueType(0), Node->getNumOperands()) &&
+        TLI.expandVectorInterleaveDeinterleaveByDecomposition(Node, Results,
+                                                              DAG))
+      return;
+
+    if (Node->getValueType(0).isFixedLengthVector())
+      TLI.expandFixedVectorInterleaveDeinterleaveToShuffle(Node, Results, DAG);
     return;
   }
   case ISD::FSUB:
