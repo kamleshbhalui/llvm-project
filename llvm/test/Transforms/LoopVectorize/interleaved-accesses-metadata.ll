@@ -104,21 +104,16 @@ define void @ir_tbaa_different(ptr %base, ptr %end, ptr %src) {
 ; CHECK-NEXT:    [[TMP4:%.*]] = shl i64 [[N_VEC]], 3
 ; CHECK-NEXT:    [[TMP5:%.*]] = getelementptr i8, ptr [[BASE]], i64 [[TMP4]]
 ; CHECK-NEXT:    [[TMP11:%.*]] = load float, ptr [[SRC]], align 4, !alias.scope [[META10:![0-9]+]]
-; CHECK-NEXT:    [[BROADCAST_SPLATINSERT:%.*]] = insertelement <2 x float> poison, float [[TMP11]], i64 0
-; CHECK-NEXT:    [[BROADCAST_SPLAT:%.*]] = shufflevector <2 x float> [[BROADCAST_SPLATINSERT]], <2 x float> poison, <2 x i32> zeroinitializer
 ; CHECK-NEXT:    br label %[[VECTOR_BODY:.*]]
 ; CHECK:       [[VECTOR_BODY]]:
 ; CHECK-NEXT:    [[INDEX:%.*]] = phi i64 [ 0, %[[VECTOR_PH]] ], [ [[INDEX_NEXT:%.*]], %[[VECTOR_BODY]] ]
 ; CHECK-NEXT:    [[OFFSET_IDX:%.*]] = shl i64 [[INDEX]], 3
 ; CHECK-NEXT:    [[NEXT_GEP:%.*]] = getelementptr i8, ptr [[BASE]], i64 [[OFFSET_IDX]]
-; CHECK-NEXT:    [[WIDE_VEC:%.*]] = load <4 x float>, ptr [[NEXT_GEP]], align 4, !alias.scope [[META13:![0-9]+]], !noalias [[META10]]
-; CHECK-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <4 x float> [[WIDE_VEC]], <4 x float> poison, <2 x i32> <i32 0, i32 2>
-; CHECK-NEXT:    [[STRIDED_VEC3:%.*]] = shufflevector <4 x float> [[WIDE_VEC]], <4 x float> poison, <2 x i32> <i32 1, i32 3>
-; CHECK-NEXT:    [[TMP6:%.*]] = fmul <2 x float> [[STRIDED_VEC]], [[BROADCAST_SPLAT]]
-; CHECK-NEXT:    [[TMP7:%.*]] = fmul <2 x float> [[STRIDED_VEC3]], [[BROADCAST_SPLAT]]
-; CHECK-NEXT:    [[TMP8:%.*]] = shufflevector <2 x float> [[TMP6]], <2 x float> [[TMP7]], <4 x i32> <i32 0, i32 1, i32 2, i32 3>
-; CHECK-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <4 x float> [[TMP8]], <4 x float> poison, <4 x i32> <i32 0, i32 2, i32 1, i32 3>
-; CHECK-NEXT:    store <4 x float> [[INTERLEAVED_VEC]], ptr [[NEXT_GEP]], align 4, !alias.scope [[META13]], !noalias [[META10]]
+; CHECK-NEXT:    [[WIDE_LOAD:%.*]] = load <4 x float>, ptr [[NEXT_GEP]], align 4, !alias.scope [[META13:![0-9]+]], !noalias [[META10]]
+; CHECK-NEXT:    [[DOTSPLATINSERT:%.*]] = insertelement <4 x float> poison, float [[TMP11]], i64 0
+; CHECK-NEXT:    [[DOTSPLAT:%.*]] = shufflevector <4 x float> [[DOTSPLATINSERT]], <4 x float> poison, <4 x i32> zeroinitializer
+; CHECK-NEXT:    [[TMP16:%.*]] = fmul <4 x float> [[WIDE_LOAD]], [[DOTSPLAT]]
+; CHECK-NEXT:    store <4 x float> [[TMP16]], ptr [[NEXT_GEP]], align 4, !alias.scope [[META13]], !noalias [[META10]]
 ; CHECK-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 2
 ; CHECK-NEXT:    [[TMP9:%.*]] = icmp eq i64 [[INDEX_NEXT]], [[N_VEC]]
 ; CHECK-NEXT:    br i1 [[TMP9]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP15:![0-9]+]]
@@ -189,12 +184,7 @@ define void @noalias_metadata_from_versioning(ptr %base, ptr %end, ptr %src) {
 ; CHECK-NEXT:    [[OFFSET_IDX:%.*]] = shl i64 [[INDEX]], 3
 ; CHECK-NEXT:    [[NEXT_GEP:%.*]] = getelementptr i8, ptr [[BASE]], i64 [[OFFSET_IDX]]
 ; CHECK-NEXT:    [[WIDE_VEC:%.*]] = load <4 x float>, ptr [[NEXT_GEP]], align 4
-; CHECK-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <4 x float> [[WIDE_VEC]], <4 x float> poison, <2 x i32> <i32 0, i32 2>
-; CHECK-NEXT:    [[STRIDED_VEC3:%.*]] = shufflevector <4 x float> [[WIDE_VEC]], <4 x float> poison, <2 x i32> <i32 1, i32 3>
-; CHECK-NEXT:    [[TMP6:%.*]] = fmul <2 x float> [[STRIDED_VEC]], splat (float 1.000000e+01)
-; CHECK-NEXT:    [[TMP7:%.*]] = fmul <2 x float> [[STRIDED_VEC3]], splat (float 1.000000e+01)
-; CHECK-NEXT:    [[TMP8:%.*]] = shufflevector <2 x float> [[TMP6]], <2 x float> [[TMP7]], <4 x i32> <i32 0, i32 1, i32 2, i32 3>
-; CHECK-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <4 x float> [[TMP8]], <4 x float> poison, <4 x i32> <i32 0, i32 2, i32 1, i32 3>
+; CHECK-NEXT:    [[INTERLEAVED_VEC:%.*]] = fmul <4 x float> [[WIDE_VEC]], splat (float 1.000000e+01)
 ; CHECK-NEXT:    store <4 x float> [[INTERLEAVED_VEC]], ptr [[NEXT_GEP]], align 4
 ; CHECK-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 2
 ; CHECK-NEXT:    [[TMP9:%.*]] = icmp eq i64 [[INDEX_NEXT]], [[N_VEC]]

@@ -92,12 +92,8 @@ define void @derived_int_ivs(ptr noalias %a, ptr noalias %b, i64 %end) {
 ; VF4-NEXT:    [[OFFSET_IDX:%.*]] = add i64 16, [[TMP5]]
 ; VF4-NEXT:    [[TMP6:%.*]] = getelementptr inbounds i8, ptr [[A]], i64 [[OFFSET_IDX]]
 ; VF4-NEXT:    [[WIDE_VEC:%.*]] = load <8 x double>, ptr [[TMP6]], align 8
-; VF4-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <8 x double> [[WIDE_VEC]], <8 x double> poison, <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-; VF4-NEXT:    [[STRIDED_VEC1:%.*]] = shufflevector <8 x double> [[WIDE_VEC]], <8 x double> poison, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
 ; VF4-NEXT:    [[TMP7:%.*]] = getelementptr inbounds i8, ptr [[B]], i64 [[OFFSET_IDX]]
-; VF4-NEXT:    [[TMP8:%.*]] = shufflevector <4 x double> [[STRIDED_VEC]], <4 x double> [[STRIDED_VEC1]], <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7>
-; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <8 x double> [[TMP8]], <8 x double> poison, <8 x i32> <i32 0, i32 4, i32 1, i32 5, i32 2, i32 6, i32 3, i32 7>
-; VF4-NEXT:    store <8 x double> [[INTERLEAVED_VEC]], ptr [[TMP7]], align 8
+; VF4-NEXT:    store <8 x double> [[WIDE_VEC]], ptr [[TMP7]], align 8
 ; VF4-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 4
 ; VF4-NEXT:    [[TMP9:%.*]] = icmp eq i64 [[INDEX_NEXT]], [[N_VEC]]
 ; VF4-NEXT:    br i1 [[TMP9]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP0:![0-9]+]]
@@ -223,11 +219,7 @@ define void @derived_pointer_ivs(ptr noalias %a, ptr noalias %b, ptr %end) {
 ; VF4-NEXT:    [[NEXT_GEP:%.*]] = getelementptr i8, ptr [[A]], i64 [[OFFSET_IDX]]
 ; VF4-NEXT:    [[NEXT_GEP6:%.*]] = getelementptr i8, ptr [[B]], i64 [[OFFSET_IDX]]
 ; VF4-NEXT:    [[WIDE_VEC:%.*]] = load <8 x double>, ptr [[NEXT_GEP]], align 8
-; VF4-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <8 x double> [[WIDE_VEC]], <8 x double> poison, <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-; VF4-NEXT:    [[STRIDED_VEC8:%.*]] = shufflevector <8 x double> [[WIDE_VEC]], <8 x double> poison, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
-; VF4-NEXT:    [[TMP13:%.*]] = shufflevector <4 x double> [[STRIDED_VEC]], <4 x double> [[STRIDED_VEC8]], <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7>
-; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <8 x double> [[TMP13]], <8 x double> poison, <8 x i32> <i32 0, i32 4, i32 1, i32 5, i32 2, i32 6, i32 3, i32 7>
-; VF4-NEXT:    store <8 x double> [[INTERLEAVED_VEC]], ptr [[NEXT_GEP6]], align 8
+; VF4-NEXT:    store <8 x double> [[WIDE_VEC]], ptr [[NEXT_GEP6]], align 8
 ; VF4-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 4
 ; VF4-NEXT:    [[TMP14:%.*]] = icmp eq i64 [[INDEX_NEXT]], [[N_VEC]]
 ; VF4-NEXT:    br i1 [[TMP14]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP4:![0-9]+]]
@@ -316,12 +308,7 @@ define void @narrow_with_uniform_add_and_gep(ptr noalias %p) {
 ; VF4-NEXT:    [[OFFSET_IDX:%.*]] = shl i64 [[INDEX]], 1
 ; VF4-NEXT:    [[TMP1:%.*]] = getelementptr i64, ptr [[P]], i64 [[OFFSET_IDX]]
 ; VF4-NEXT:    [[WIDE_VEC:%.*]] = load <8 x i64>, ptr [[TMP1]], align 8
-; VF4-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <8 x i64> [[WIDE_VEC]], <8 x i64> poison, <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-; VF4-NEXT:    [[STRIDED_VEC1:%.*]] = shufflevector <8 x i64> [[WIDE_VEC]], <8 x i64> poison, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
-; VF4-NEXT:    [[TMP2:%.*]] = add <4 x i64> [[STRIDED_VEC]], splat (i64 1)
-; VF4-NEXT:    [[TMP3:%.*]] = add <4 x i64> [[STRIDED_VEC1]], splat (i64 1)
-; VF4-NEXT:    [[TMP4:%.*]] = shufflevector <4 x i64> [[TMP2]], <4 x i64> [[TMP3]], <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7>
-; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <8 x i64> [[TMP4]], <8 x i64> poison, <8 x i32> <i32 0, i32 4, i32 1, i32 5, i32 2, i32 6, i32 3, i32 7>
+; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = add <8 x i64> [[WIDE_VEC]], splat (i64 1)
 ; VF4-NEXT:    store <8 x i64> [[INTERLEAVED_VEC]], ptr [[TMP1]], align 8
 ; VF4-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 4
 ; VF4-NEXT:    [[TMP5:%.*]] = icmp eq i64 [[INDEX_NEXT]], 512

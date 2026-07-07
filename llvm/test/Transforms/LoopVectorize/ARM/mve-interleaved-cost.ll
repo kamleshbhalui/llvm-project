@@ -27,22 +27,22 @@ define void @i8_factor_2(ptr %data, i64 %n) #0 {
 ; VF_2:  Cost of 4 for VF 2: REPLICATE store ir<%tmp3>, ir<%tmp1>
 ;
 ; VF_4-LABEL: 'i8_factor_2'
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_4:  Cost of 2 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_8-LABEL: 'i8_factor_2'
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_8:  Cost of 2 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 2 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_8:  Cost of 2 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 2 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_16-LABEL: 'i8_factor_2'
-; VF_16:  Cost of 4 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 4 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 4 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 4 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_16:  Cost of 4 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 4 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_16:  Cost of 4 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 4 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 entry:
   br label %for.body
@@ -80,22 +80,22 @@ define void @i16_factor_2(ptr %data, i64 %n) #0 {
 ; VF_2:  Cost of 4 for VF 2: REPLICATE store ir<%tmp3>, ir<%tmp1>
 ;
 ; VF_4-LABEL: 'i16_factor_2'
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_4:  Cost of 2 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_8-LABEL: 'i16_factor_2'
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_8:  Cost of 4 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 4 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_8:  Cost of 4 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 4 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_16-LABEL: 'i16_factor_2'
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_16:  Cost of 8 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 8 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_16:  Cost of 8 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 8 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 entry:
   br label %for.body
@@ -133,22 +133,22 @@ define void @i32_factor_2(ptr %data, i64 %n) #0 {
 ; VF_2:  Cost of 4 for VF 2: REPLICATE store ir<%tmp3>, ir<%tmp1>
 ;
 ; VF_4-LABEL: 'i32_factor_2'
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_8-LABEL: 'i32_factor_2'
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_16-LABEL: 'i32_factor_2'
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 entry:
   br label %for.body
@@ -263,22 +263,22 @@ define void @f16_factor_2(ptr %data, i64 %n) #0 {
 ; VF_2:  Cost of 4 for VF 2: REPLICATE store ir<%tmp3>, ir<%tmp1>
 ;
 ; VF_4-LABEL: 'f16_factor_2'
-; VF_4:  Cost of 18 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 18 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 18 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 18 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_4:  Cost of 2 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 2 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_8-LABEL: 'f16_factor_2'
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 4 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_8:  Cost of 4 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 4 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_8:  Cost of 4 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 4 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_16-LABEL: 'f16_factor_2'
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 8 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_16:  Cost of 8 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 8 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_16:  Cost of 8 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 8 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 entry:
   br label %for.body
@@ -302,28 +302,28 @@ for.end:
 %f32.2 = type {float, float}
 define void @f32_factor_2(ptr %data, i64 %n) #0 {
 ; VF_2-LABEL: 'f32_factor_2'
-; VF_2:  Cost of 10 for VF 2: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_2:  Cost of 10 for VF 2: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_2:  Cost of 10 for VF 2: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_2:  Cost of 10 for VF 2: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_2:  Cost of 2 for VF 2: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_2:  Cost of 2 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_2:  Cost of 2 for VF 2: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_2:  Cost of 2 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_4-LABEL: 'f32_factor_2'
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_4:  Cost of 4 for VF 4: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_8-LABEL: 'f32_factor_2'
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_8:  Cost of 8 for VF 8: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 ; VF_16-LABEL: 'f32_factor_2'
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
-; VF_16:  Cost of 16 for VF 16: INTERLEAVE-GROUP with factor 2, ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp2> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp2>
 ;
 entry:
   br label %for.body
@@ -866,22 +866,22 @@ define void @f16_factor_3(ptr %data, i64 %n) #0 {
 ; VF_2:  Cost of 4 for VF 2: REPLICATE store ir<%tmp5>, ir<%tmp2>
 ;
 ; VF_4-LABEL: 'f16_factor_3'
-; VF_4:  Cost of 28 for VF 4: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_4:  Cost of 28 for VF 4: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_4:  Cost of 28 for VF 4: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_4:  Cost of 28 for VF 4: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp3>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp3>
 ;
 ; VF_8-LABEL: 'f16_factor_3'
-; VF_8:  Cost of 56 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_8:  Cost of 56 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_8:  Cost of 56 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_8:  Cost of 56 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp3>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp3>
 ;
 ; VF_16-LABEL: 'f16_factor_3'
-; VF_16:  Cost of 112 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_16:  Cost of 112 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_16:  Cost of 112 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_16:  Cost of 112 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp3>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp3>
 ;
 entry:
   br label %for.body
@@ -908,10 +908,10 @@ for.end:
 %f32.3 = type {float, float, float}
 define void @f32_factor_3(ptr %data, i64 %n) #0 {
 ; VF_2-LABEL: 'f32_factor_3'
-; VF_2:  Cost of 16 for VF 2: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_2:  Cost of 16 for VF 2: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_2:  Cost of 16 for VF 2: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_2:  Cost of 16 for VF 2: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
+; VF_2:  Cost of 4 for VF 2: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_2:  Cost of 4 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp3>
+; VF_2:  Cost of 4 for VF 2: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_2:  Cost of 4 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp3>
 ;
 ; VF_4-LABEL: 'f32_factor_3'
 ; VF_4:  Cost of 0 for VF 4: ir<%i> = WIDEN-INDUCTION nuw nsw ir<0>, ir<1>, vp<[[VP0:%[0-9]+]]>
@@ -936,16 +936,16 @@ define void @f32_factor_3(ptr %data, i64 %n) #0 {
 ; VF_4:  Cost of 8 for VF 4: WIDEN store ir<%tmp2>, ir<%tmp5>
 ;
 ; VF_8-LABEL: 'f32_factor_3'
-; VF_8:  Cost of 64 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_8:  Cost of 64 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_8:  Cost of 64 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_8:  Cost of 64 for VF 8: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
+; VF_8:  Cost of 16 for VF 8: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_8:  Cost of 16 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp3>
+; VF_8:  Cost of 16 for VF 8: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_8:  Cost of 16 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp3>
 ;
 ; VF_16-LABEL: 'f32_factor_3'
-; VF_16:  Cost of 128 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_16:  Cost of 128 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_16:  Cost of 128 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
-; VF_16:  Cost of 128 for VF 16: INTERLEAVE-GROUP with factor 3, ir<%tmp0>
+; VF_16:  Cost of 32 for VF 16: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_16:  Cost of 32 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp3>
+; VF_16:  Cost of 32 for VF 16: WIDEN ir<%tmp3> = load ir<%tmp0>
+; VF_16:  Cost of 32 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp3>
 ;
 entry:
   br label %for.body
@@ -1605,28 +1605,28 @@ for.end:
 %f16.4 = type {half, half, half, half}
 define void @f16_factor_4(ptr %data, i64 %n) #0 {
 ; VF_2-LABEL: 'f16_factor_4'
-; VF_2:  Cost of 18 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_2:  Cost of 18 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_2:  Cost of 18 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_2:  Cost of 18 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_2:  Cost of 2 for VF 2: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_2:  Cost of 2 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_2:  Cost of 2 for VF 2: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_2:  Cost of 2 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 ; VF_4-LABEL: 'f16_factor_4'
-; VF_4:  Cost of 36 for VF 4: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_4:  Cost of 36 for VF 4: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_4:  Cost of 36 for VF 4: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_4:  Cost of 36 for VF 4: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_4:  Cost of 4 for VF 4: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_4:  Cost of 4 for VF 4: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 ; VF_8-LABEL: 'f16_factor_4'
-; VF_8:  Cost of 72 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_8:  Cost of 72 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_8:  Cost of 72 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_8:  Cost of 72 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_8:  Cost of 8 for VF 8: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_8:  Cost of 8 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 ; VF_16-LABEL: 'f16_factor_4'
-; VF_16:  Cost of 144 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_16:  Cost of 144 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_16:  Cost of 144 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_16:  Cost of 144 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_16:  Cost of 16 for VF 16: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_16:  Cost of 16 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 entry:
   br label %for.body
@@ -1656,10 +1656,10 @@ for.end:
 %f32.4 = type {float, float, float, float}
 define void @f32_factor_4(ptr %data, i64 %n) #0 {
 ; VF_2-LABEL: 'f32_factor_4'
-; VF_2:  Cost of 20 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_2:  Cost of 20 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_2:  Cost of 20 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_2:  Cost of 20 for VF 2: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_2:  Cost of 4 for VF 2: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_2:  Cost of 4 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_2:  Cost of 4 for VF 2: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_2:  Cost of 4 for VF 2: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 ; VF_4-LABEL: 'f32_factor_4'
 ; VF_4:  Cost of 0 for VF 4: ir<%i> = WIDEN-INDUCTION nuw nsw ir<0>, ir<1>, vp<[[VP0:%[0-9]+]]>
@@ -1690,16 +1690,16 @@ define void @f32_factor_4(ptr %data, i64 %n) #0 {
 ; VF_4:  Cost of 8 for VF 4: WIDEN store ir<%tmp3>, ir<%tmp7>
 ;
 ; VF_8-LABEL: 'f32_factor_4'
-; VF_8:  Cost of 80 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_8:  Cost of 80 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_8:  Cost of 80 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_8:  Cost of 80 for VF 8: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_8:  Cost of 16 for VF 8: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_8:  Cost of 16 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_8:  Cost of 16 for VF 8: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_8:  Cost of 16 for VF 8: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 ; VF_16-LABEL: 'f32_factor_4'
-; VF_16:  Cost of 160 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_16:  Cost of 160 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_16:  Cost of 160 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
-; VF_16:  Cost of 160 for VF 16: INTERLEAVE-GROUP with factor 4, ir<%tmp0>
+; VF_16:  Cost of 32 for VF 16: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_16:  Cost of 32 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp4>
+; VF_16:  Cost of 32 for VF 16: WIDEN ir<%tmp4> = load ir<%tmp0>
+; VF_16:  Cost of 32 for VF 16: WIDEN store ir<%tmp0>, ir<%tmp4>
 ;
 entry:
   br label %for.body

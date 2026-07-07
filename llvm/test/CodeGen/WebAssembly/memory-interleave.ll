@@ -22,19 +22,13 @@ target datalayout = "e-m:e-p:32:32-p10:8:8-p20:8:8-i64:64-n32:64-S128-ni:1:10:20
 define hidden void @two_ints_same_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: two_ints_same_op:
 ; CHECK:    loop # label2:
-; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
-; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
 ; CHECK:    i32x4.add
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
-; CHECK:    i32x4.add
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 12, 13, 14, 15, 28, 29, 30, 31
 ; CHECK:    v128.store 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    i32x4.add
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
 ; CHECK:    loop # label3:
@@ -222,29 +216,21 @@ define hidden void @three_shorts(ptr noalias nocapture noundef writeonly %0, ptr
 define hidden void @four_shorts_same_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: four_shorts_same_op:
 ; CHECK:    loop # label14:
-; CHECK:    v128.load 0:p2align=1
+; CHECK:    v128.load 48:p2align=1
+; CHECK:    v128.load 48:p2align=1
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 48:p2align=1
+; CHECK:    v128.load 32:p2align=1
+; CHECK:    v128.load 32:p2align=1
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 32:p2align=1
 ; CHECK:    v128.load 16:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 8, 9, 16, 17, 24, 25, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    v128.load 0:p2align=1
 ; CHECK:    v128.load 16:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 8, 9, 16, 17, 24, 25, 0, 1, 0, 1, 0, 1, 0, 1
 ; CHECK:    i16x8.sub
-; CHECK:    i8x16.shuffle 2, 3, 10, 11, 18, 19, 26, 27, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i8x16.shuffle 2, 3, 10, 11, 18, 19, 26, 27, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i16x8.sub
-; CHECK:    i8x16.shuffle 4, 5, 20, 21, 0, 1, 0, 1, 6, 7, 22, 23, 0, 1, 0, 1
-; CHECK:    i8x16.shuffle 4, 5, 12, 13, 20, 21, 28, 29, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i8x16.shuffle 4, 5, 12, 13, 20, 21, 28, 29, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i16x8.sub
-; CHECK:    i8x16.shuffle 6, 7, 14, 15, 22, 23, 30, 31, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i8x16.shuffle 6, 7, 14, 15, 22, 23, 30, 31, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i16x8.sub
-; CHECK:    i8x16.shuffle 0, 1, 0, 1, 4, 5, 20, 21, 0, 1, 0, 1, 6, 7, 22, 23
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 20, 21, 22, 23, 8, 9, 10, 11, 28, 29, 30, 31
 ; CHECK:    v128.store 16:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 16, 17, 0, 1, 0, 1, 2, 3, 18, 19, 0, 1, 0, 1
-; CHECK:    i8x16.shuffle 0, 1, 0, 1, 0, 1, 16, 17, 0, 1, 0, 1, 2, 3, 18, 19
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 20, 21, 22, 23, 8, 9, 10, 11, 28, 29, 30, 31
+; CHECK:    v128.load 0:p2align=1
+; CHECK:    v128.load 0:p2align=1
+; CHECK:    i16x8.sub
 ; CHECK:    v128.store 0:p2align=1
 ; CHECK:    end_loop
 ; CHECK:    loop # label15:
@@ -470,7 +456,29 @@ define hidden void @four_shorts_interleave_op(ptr noalias nocapture noundef writ
 
 define hidden void @five_shorts(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: five_shorts:
-; CHECK:    loop # label25:
+; CHECK:    loop # label26:
+; CHECK:    v128.load 64:p2align=0
+; CHECK:    v128.load 64:p2align=0
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 64:p2align=0
+; CHECK:    v128.load 48:p2align=0
+; CHECK:    v128.load 48:p2align=0
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 48:p2align=0
+; CHECK:    v128.load 32:p2align=0
+; CHECK:    v128.load 32:p2align=0
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 32:p2align=0
+; CHECK:    v128.load 16:p2align=0
+; CHECK:    v128.load 16:p2align=0
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 16:p2align=0
+; CHECK:    v128.load 0:p2align=0
+; CHECK:    v128.load 0:p2align=0
+; CHECK:    i16x8.sub
+; CHECK:    v128.store 0:p2align=0
+; CHECK:    end_loop
+; CHECK:    loop # label27:
 ; CHECK:    i32.load16_u 0:p2align=0
 ; CHECK:    i32.load16_u 0:p2align=0
 ; CHECK:    i32.store16 0:p2align=0
@@ -537,25 +545,15 @@ define hidden void @five_shorts(ptr noalias nocapture noundef writeonly %0, ptr 
 
 define hidden void @two_bytes_same_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: two_bytes_same_op:
-; CHECK:    loop # label28:
+; CHECK:    loop # label30:
 ; CHECK:    v128.load 0:p2align=0
-; CHECK:    v128.load 16:p2align=0
-; CHECK:    i8x16.shuffle 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
 ; CHECK:    v128.load 0:p2align=0
-; CHECK:    v128.load 16:p2align=0
+; CHECK:    i16x8.extmul_low_i8x16_u
+; CHECK:    i16x8.extmul_high_i8x16_u
 ; CHECK:    i8x16.shuffle 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
-; CHECK:    i16x8.extmul_high_i8x16_u
-; CHECK:    i8x16.shuffle 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31
-; CHECK:    i8x16.shuffle 1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31
-; CHECK:    i16x8.extmul_high_i8x16_u
-; CHECK:    i8x16.shuffle 0, 16, 2, 18, 4, 20, 6, 22, 8, 24, 10, 26, 12, 28, 14, 30
-; CHECK:    v128.store 16:p2align=0
-; CHECK:    i16x8.extmul_low_i8x16_u
-; CHECK:    i16x8.extmul_low_i8x16_u
-; CHECK:    i8x16.shuffle 0, 16, 2, 18, 4, 20, 6, 22, 8, 24, 10, 26, 12, 28, 14, 30
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label29:
+; CHECK:    loop # label31:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -592,7 +590,7 @@ define hidden void @two_bytes_same_op(ptr noalias nocapture noundef writeonly %0
 
 define hidden void @two_bytes_vary_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: two_bytes_vary_op:
-; CHECK:    loop # label32:
+; CHECK:    loop # label34:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
@@ -609,7 +607,7 @@ define hidden void @two_bytes_vary_op(ptr noalias nocapture noundef writeonly %0
 ; CHECK:    i8x16.shuffle 0, 16, 2, 17, 4, 18, 6, 19, 8, 20, 10, 21, 12, 22, 14, 23
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label33:
+; CHECK:    loop # label35:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -646,7 +644,7 @@ define hidden void @two_bytes_vary_op(ptr noalias nocapture noundef writeonly %0
 
 define hidden void @three_bytes_same_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: three_bytes_same_op:
-; CHECK:    loop # label35:
+; CHECK:    loop # label37:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -693,7 +691,7 @@ define hidden void @three_bytes_same_op(ptr noalias nocapture noundef writeonly 
 
 define hidden void @three_bytes_interleave_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: three_bytes_interleave_op:
-; CHECK:    loop # label37:
+; CHECK:    loop # label39:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -740,33 +738,25 @@ define hidden void @three_bytes_interleave_op(ptr noalias nocapture noundef writ
 
 define hidden void @four_bytes_same_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: four_bytes_same_op:
-; CHECK:    loop # label40:
-; CHECK:    v128.load 0:p2align=0
+; CHECK:    loop # label42:
+; CHECK:    v128.load 48:p2align=0
+; CHECK:    v128.load 48:p2align=0
+; CHECK:    v128.and
+; CHECK:    v128.store 48:p2align=0
+; CHECK:    v128.load 32:p2align=0
+; CHECK:    v128.load 32:p2align=0
+; CHECK:    v128.and
+; CHECK:    v128.store 32:p2align=0
 ; CHECK:    v128.load 16:p2align=0
-; CHECK:    i8x16.shuffle 0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
-; CHECK:    i8x16.shuffle 0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    v128.and
-; CHECK:    i8x16.shuffle 1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i8x16.shuffle 1, 5, 9, 13, 17, 21, 25, 29, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    v128.and
-; CHECK:    i8x16.shuffle 4, 20, 0, 0, 5, 21, 0, 0, 6, 22, 0, 0, 7, 23, 0, 0
-; CHECK:    i8x16.shuffle 2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i8x16.shuffle 2, 6, 10, 14, 18, 22, 26, 30, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    v128.and
-; CHECK:    i8x16.shuffle 3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i8x16.shuffle 3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    v128.and
-; CHECK:    i8x16.shuffle 0, 0, 4, 20, 0, 0, 5, 21, 0, 0, 6, 22, 0, 0, 7, 23
-; CHECK:    i8x16.shuffle 0, 1, 18, 19, 4, 5, 22, 23, 8, 9, 26, 27, 12, 13, 30, 31
 ; CHECK:    v128.store 16:p2align=0
-; CHECK:    i8x16.shuffle 0, 16, 0, 0, 1, 17, 0, 0, 2, 18, 0, 0, 3, 19, 0, 0
-; CHECK:    i8x16.shuffle 0, 0, 0, 16, 0, 0, 1, 17, 0, 0, 2, 18, 0, 0, 3, 19
-; CHECK:    i8x16.shuffle 0, 1, 18, 19, 4, 5, 22, 23, 8, 9, 26, 27, 12, 13, 30, 31
+; CHECK:    v128.load 0:p2align=0
+; CHECK:    v128.load 0:p2align=0
+; CHECK:    v128.and
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label41:
+; CHECK:    loop # label43:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -823,7 +813,7 @@ define hidden void @four_bytes_same_op(ptr noalias nocapture noundef writeonly %
 
 define hidden void @four_bytes_split_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: four_bytes_split_op:
-; CHECK:    loop # label44:
+; CHECK:    loop # label46:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0
@@ -847,7 +837,7 @@ define hidden void @four_bytes_split_op(ptr noalias nocapture noundef writeonly 
 ; CHECK:    i8x16.shuffle 0, 8, 16, 24, 1, 9, 17, 25, 2, 10, 18, 26, 3, 11, 19, 27
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label45:
+; CHECK:    loop # label47:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -904,7 +894,7 @@ define hidden void @four_bytes_split_op(ptr noalias nocapture noundef writeonly 
 
 define hidden void @four_bytes_interleave_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: four_bytes_interleave_op:
-; CHECK:    loop # label48:
+; CHECK:    loop # label50:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0
@@ -930,7 +920,7 @@ define hidden void @four_bytes_interleave_op(ptr noalias nocapture noundef write
 ; CHECK:    i8x16.shuffle 0, 1, 18, 19, 4, 5, 22, 23, 8, 9, 26, 27, 12, 13, 30, 31
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label49:
+; CHECK:    loop # label51:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -987,7 +977,15 @@ define hidden void @four_bytes_interleave_op(ptr noalias nocapture noundef write
 
 define hidden void @eight_bytes_same_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: eight_bytes_same_op:
-; CHECK:    loop # label51:
+; CHECK:    loop # label54:
+; CHECK:    v128.load 0:p2align=0
+; CHECK:    v128.load 0:p2align=0
+; CHECK:    i16x8.extmul_low_i8x16_u
+; CHECK:    i16x8.extmul_high_i8x16_u
+; CHECK:    i8x16.shuffle 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
+; CHECK:    v128.store 0:p2align=0
+; CHECK:    end_loop
+; CHECK:    loop # label55:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -1084,7 +1082,7 @@ define hidden void @eight_bytes_same_op(ptr noalias nocapture noundef writeonly 
 
 define hidden void @eight_bytes_split_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: eight_bytes_split_op:
-; CHECK:    loop # label53:
+; CHECK:    loop # label57:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -1181,7 +1179,7 @@ define hidden void @eight_bytes_split_op(ptr noalias nocapture noundef writeonly
 
 define hidden void @eight_bytes_interleave_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: eight_bytes_interleave_op:
-; CHECK:    loop # label55:
+; CHECK:    loop # label59:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -1278,67 +1276,29 @@ define hidden void @eight_bytes_interleave_op(ptr noalias nocapture noundef writ
 
 define hidden void @four_bytes_into_four_ints_same_op(ptr noalias nocapture noundef %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: four_bytes_into_four_ints_same_op:
-; CHECK:    loop # label58:
+; CHECK:    loop # label62:
 ; CHECK:    v128.load 0:p2align=0
-; CHECK:    i8x16.shuffle 0, 4, 8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
 ; CHECK:    v128.load 0:p2align=0
-; CHECK:    i8x16.shuffle 0, 4, 8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i32x4.extmul_low_i16x8_u
-; CHECK:    v128.load 0:p2align=2
-; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 0, 1, 2, 3, 0, 1, 2, 3
+; CHECK:    i16x8.extmul_high_i8x16_u
+; CHECK:    i32x4.extend_low_i16x8_u
 ; CHECK:    v128.load 32:p2align=2
-; CHECK:    v128.load 48:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 16, 17, 18, 19
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    i32x4.add
-; CHECK:    i8x16.shuffle 1, 5, 9, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i8x16.shuffle 1, 5, 9, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i32x4.extmul_low_i16x8_u
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 20, 21, 22, 23, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
-; CHECK:    i32x4.add
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 2, 6, 10, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i8x16.shuffle 2, 6, 10, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i32x4.extmul_low_i16x8_u
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 8, 9, 10, 11, 24, 25, 26, 27
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
-; CHECK:    i32x4.add
-; CHECK:    i8x16.shuffle 3, 7, 11, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i8x16.shuffle 3, 7, 11, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_u
-; CHECK:    i32x4.extmul_low_i16x8_u
-; CHECK:    i8x16.shuffle 12, 13, 14, 15, 28, 29, 30, 31, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 12, 13, 14, 15, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
-; CHECK:    i32x4.add
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 8, 9, 10, 11, 24, 25, 26, 27
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    v128.store 32:p2align=2
-; CHECK:    i8x16.shuffle 12, 13, 14, 15, 28, 29, 30, 31, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 12, 13, 14, 15, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i32x4.extend_high_i16x8_u
+; CHECK:    v128.load 48:p2align=2
+; CHECK:    i32x4.add
 ; CHECK:    v128.store 48:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 16, 17, 18, 19
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i16x8.extmul_low_i8x16_u
+; CHECK:    i32x4.extend_low_i16x8_u
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    i32x4.add
 ; CHECK:    v128.store 0:p2align=2
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 20, 21, 22, 23, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i32x4.extend_high_i16x8_u
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    i32x4.add
 ; CHECK:    v128.store 16:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label59:
+; CHECK:    loop # label63:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load 0
@@ -1415,7 +1375,7 @@ define hidden void @four_bytes_into_four_ints_same_op(ptr noalias nocapture noun
 
 define hidden void @four_bytes_into_four_ints_vary_op(ptr noalias nocapture noundef writeonly %0, ptr nocapture noundef readonly %1, ptr nocapture noundef readonly %2, i32 noundef %3) {
 ; CHECK-LABEL: four_bytes_into_four_ints_vary_op:
-; CHECK:    loop # label62:
+; CHECK:    loop # label66:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    i8x16.shuffle 0, 4, 8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    i16x8.extend_low_i8x16_u
@@ -1458,7 +1418,7 @@ define hidden void @four_bytes_into_four_ints_vary_op(ptr noalias nocapture noun
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label63:
+; CHECK:    loop # label67:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store 0
@@ -1522,13 +1482,13 @@ define hidden void @four_bytes_into_four_ints_vary_op(ptr noalias nocapture noun
 
 define hidden void @scale_uv_row_down2(ptr nocapture noundef readonly %0, i32 noundef %1, ptr nocapture noundef writeonly %2, i32 noundef %3) {
 ; CHECK-LABEL: scale_uv_row_down2:
-; CHECK:    loop # label67:
+; CHECK:    loop # label71:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 1, 4, 5, 8, 9, 12, 13, 16, 17, 20, 21, 24, 25, 28, 29
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label68:
+; CHECK:    loop # label72:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.load8_u 0
@@ -1560,7 +1520,7 @@ define hidden void @scale_uv_row_down2(ptr nocapture noundef readonly %0, i32 no
 
 define hidden void @scale_uv_row_down2_box(ptr nocapture noundef readonly %0, i32 noundef %1, ptr nocapture noundef writeonly %2, i32 noundef %3) {
 ; CHECK-LABEL: scale_uv_row_down2_box:
-; CHECK:    loop # label72:
+; CHECK:    loop # label76:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0
@@ -1595,7 +1555,7 @@ define hidden void @scale_uv_row_down2_box(ptr nocapture noundef readonly %0, i3
 ; CHECK:    i8x16.shuffle 0, 16, 2, 18, 4, 20, 6, 22, 8, 24, 10, 26, 12, 28, 14, 30
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label73:
+; CHECK:    loop # label77:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
@@ -1670,7 +1630,7 @@ define hidden void @scale_uv_row_down2_box(ptr nocapture noundef readonly %0, i3
 
 define hidden void @scale_uv_row_down2_linear(ptr nocapture noundef readonly %0, i32 noundef %1, ptr nocapture noundef writeonly %2, i32 noundef %3) {
 ; CHECK-LABEL: scale_uv_row_down2_linear:
-; CHECK:    loop # label78:
+; CHECK:    loop # label82:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 4, 8, 12, 16, 20, 24, 28, 0, 0, 0, 0, 0, 0, 0, 0
@@ -1682,7 +1642,7 @@ define hidden void @scale_uv_row_down2_linear(ptr nocapture noundef readonly %0,
 ; CHECK:    i8x16.shuffle 0, 16, 1, 17, 2, 18, 3, 19, 4, 20, 5, 21, 6, 22, 7, 23
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label79:
+; CHECK:    loop # label83:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.store8 0
@@ -1731,7 +1691,7 @@ define hidden void @scale_uv_row_down2_linear(ptr nocapture noundef readonly %0,
 
 define hidden void @scale_argb_row_down2_box(ptr noundef readonly captures(none) %arg, i32 noundef %arg1, ptr noundef writeonly captures(none) %arg2, i32 noundef %arg3) local_unnamed_addr #0 {
 ; CHECK-LABEL: scale_argb_row_down2_box:
-; CHECK:    loop # label83:
+; CHECK:    loop # label87:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 0, 8, 16, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -1862,7 +1822,7 @@ define hidden void @scale_argb_row_down2_box(ptr noundef readonly captures(none)
 ; CHECK:    i8x16.replace_lane 15
 ; CHECK:    v128.store 0:p2align=0
 ; CHECK:    end_loop
-; CHECK:    loop # label84:
+; CHECK:    loop # label88:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
@@ -2000,7 +1960,7 @@ define hidden void @argb_to_uv_matrix_row(ptr noundef readonly captures(none) %a
 ; CHECK:    i16x8.extend_low_i8x16_s
 ; CHECK:    v128.load8_splat 33
 ; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    loop # label88:
+; CHECK:    loop # label92:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 1, 9, 17, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -2117,7 +2077,7 @@ define hidden void @argb_to_uv_matrix_row(ptr noundef readonly captures(none) %a
 ; CHECK:    i8x16.shuffle 0, 2, 4, 6, 8, 10, 12, 14, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    v128.store64_lane 0:p2align=0, 0
 ; CHECK:    end_loop
-; CHECK:    loop # label89:
+; CHECK:    loop # label93:
 ; CHECK:    i32.load16_u 128
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
@@ -2291,23 +2251,17 @@ bb134:                                            ; preds = %bb18, %bb
 
 define hidden void @two_floats_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_floats_same_op:
-; CHECK:    loop # label92:
-; CHECK:    v128.load 0:p2align=2
+; CHECK:    loop # label96:
 ; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
-; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
 ; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 12, 13, 14, 15, 28, 29, 30, 31
 ; CHECK:    v128.store 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label93:
+; CHECK:    loop # label97:
 ; CHECK:    end_loop
 entry:
   %cmp21.not = icmp eq i32 %N, 0
@@ -2339,7 +2293,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_floats_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_floats_vary_op:
-; CHECK:    loop # label96:
+; CHECK:    loop # label100:
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
@@ -2355,7 +2309,7 @@ define hidden void @two_floats_vary_op(ptr noundef readonly captures(none) %a, p
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label97:
+; CHECK:    loop # label101:
 ; CHECK:    end_loop
 entry:
   %cmp20.not = icmp eq i32 %N, 0
@@ -2387,33 +2341,47 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_bytes_two_floats_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_bytes_two_floats_same_op:
-; CHECK:    loop # label100:
+; CHECK:    loop # label104:
 ; CHECK:    v128.load64_zero 0:p2align=0
-; CHECK:    i8x16.shuffle 0, 2, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
+; CHECK:    i8x16.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
 ; CHECK:    v128.load64_zero 0:p2align=0
-; CHECK:    i8x16.shuffle 0, 2, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
+; CHECK:    i8x16.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
 ; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 1, 3, 5, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 1, 3, 5, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 12, 13, 14, 15, 28, 29, 30, 31
 ; CHECK:    v128.store 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
+; CHECK:    i8x16.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    i8x16.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label101:
+; CHECK:    loop # label105:
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
@@ -2453,7 +2421,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_bytes_two_floats_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_bytes_two_floats_vary_op:
-; CHECK:    loop # label104:
+; CHECK:    loop # label108:
 ; CHECK:    v128.load64_zero 0:p2align=0
 ; CHECK:    i8x16.shuffle 0, 2, 4, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    i16x8.extend_low_i8x16_s
@@ -2479,7 +2447,7 @@ define hidden void @two_bytes_two_floats_vary_op(ptr noundef readonly captures(n
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label105:
+; CHECK:    loop # label109:
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
@@ -2520,30 +2488,23 @@ for.body:                                         ; preds = %entry, %for.body
 define hidden void @two_floats_two_bytes_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_floats_two_bytes_same_op:
 ; CHECK:    i16x8.narrow_i32x4_u
-; CHECK:    loop # label108:
+; CHECK:    loop # label112:
 ; CHECK:    v128.load 0:p2align=2
-; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
 ; CHECK:    v128.load 0:p2align=2
-; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
 ; CHECK:    f32x4.mul
 ; CHECK:    i32x4.trunc_sat_f32x4_s
 ; CHECK:    v128.const 255, 255, 255, 255
 ; CHECK:    v128.and
-; CHECK:    i16x8.narrow_i32x4_u
-; CHECK:    i8x16.narrow_i16x8_u
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    v128.load 16:p2align=2
 ; CHECK:    f32x4.mul
 ; CHECK:    i32x4.trunc_sat_f32x4_s
 ; CHECK:    v128.and
 ; CHECK:    i16x8.narrow_i32x4_u
 ; CHECK:    i8x16.narrow_i16x8_u
-; CHECK:    i8x16.shuffle 0, 16, 1, 17, 2, 18, 3, 19, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    v128.store64_lane 0:p2align=0, 0
 ; CHECK:    end_loop
-; CHECK:    loop # label109:
+; CHECK:    loop # label113:
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.store8 0
 ; CHECK:    end_loop
@@ -2580,7 +2541,7 @@ for.body:                                         ; preds = %entry, %for.body
 define hidden void @two_floats_two_bytes_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_floats_two_bytes_vary_op:
 ; CHECK:    i16x8.narrow_i32x4_u
-; CHECK:    loop # label112:
+; CHECK:    loop # label116:
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
@@ -2603,7 +2564,7 @@ define hidden void @two_floats_two_bytes_vary_op(ptr noundef readonly captures(n
 ; CHECK:    i8x16.shuffle 0, 16, 1, 17, 2, 18, 3, 19, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    v128.store64_lane 0:p2align=0, 0
 ; CHECK:    end_loop
-; CHECK:    loop # label113:
+; CHECK:    loop # label117:
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.store8 0
 ; CHECK:    end_loop
@@ -2639,29 +2600,15 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_shorts_two_floats_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_shorts_two_floats_same_op:
-; CHECK:    loop # label116:
-; CHECK:    v128.load 0:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
+; CHECK:    loop # label120:
+; CHECK:    i32x4.load16x4_s 0:p2align=1
 ; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    v128.load 0:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
+; CHECK:    i32x4.load16x4_s 0:p2align=1
 ; CHECK:    f32x4.convert_i32x4_s
 ; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 2, 3, 6, 7, 10, 11, 14, 15, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 2, 3, 6, 7, 10, 11, 14, 15, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 12, 13, 14, 15, 28, 29, 30, 31
-; CHECK:    v128.store 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label117:
+; CHECK:    loop # label121:
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
@@ -2701,7 +2648,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_shorts_two_floats_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_shorts_two_floats_vary_op:
-; CHECK:    loop # label120:
+; CHECK:    loop # label124:
 ; CHECK:    v128.load 0:p2align=1
 ; CHECK:    i8x16.shuffle 0, 1, 4, 5, 8, 9, 12, 13, 0, 1, 0, 1, 0, 1, 0, 1
 ; CHECK:    i32x4.extend_low_i16x8_s
@@ -2723,7 +2670,7 @@ define hidden void @two_shorts_two_floats_vary_op(ptr noundef readonly captures(
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 4, 5, 6, 7, 20, 21, 22, 23
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label121:
+; CHECK:    loop # label125:
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
@@ -2763,28 +2710,22 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_floats_two_shorts_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_floats_two_shorts_same_op:
-; CHECK:    loop # label124:
+; CHECK:    loop # label128:
 ; CHECK:    v128.load 0:p2align=2
-; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
 ; CHECK:    v128.load 0:p2align=2
-; CHECK:    v128.load 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
 ; CHECK:    f32x4.mul
 ; CHECK:    i32x4.trunc_sat_f32x4_s
 ; CHECK:    v128.const 65535, 65535, 65535, 65535
 ; CHECK:    v128.and
-; CHECK:    i16x8.narrow_i32x4_u
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    v128.load 16:p2align=2
 ; CHECK:    f32x4.mul
 ; CHECK:    i32x4.trunc_sat_f32x4_s
 ; CHECK:    v128.and
 ; CHECK:    i16x8.narrow_i32x4_u
-; CHECK:    i8x16.shuffle 0, 1, 16, 17, 2, 3, 18, 19, 4, 5, 20, 21, 6, 7, 22, 23
 ; CHECK:    v128.store 0:p2align=1
 ; CHECK:    end_loop
-; CHECK:    loop # label125:
+; CHECK:    loop # label129:
 ; CHECK:    i32.store16 0
 ; CHECK:    i32.store16 0
 ; CHECK:    end_loop
@@ -2820,7 +2761,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @two_floats_two_shorts_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: two_floats_two_shorts_vary_op:
-; CHECK:    loop # label128:
+; CHECK:    loop # label132:
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 8, 9, 10, 11, 16, 17, 18, 19, 24, 25, 26, 27
@@ -2841,7 +2782,7 @@ define hidden void @two_floats_two_shorts_vary_op(ptr noundef readonly captures(
 ; CHECK:    i8x16.shuffle 0, 1, 16, 17, 2, 3, 18, 19, 4, 5, 20, 21, 6, 7, 22, 23
 ; CHECK:    v128.store 0:p2align=1
 ; CHECK:    end_loop
-; CHECK:    loop # label129:
+; CHECK:    loop # label133:
 ; CHECK:    i32.store16 0
 ; CHECK:    i32.store16 0
 ; CHECK:    end_loop
@@ -2877,13 +2818,13 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_floats_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_floats_same_op:
-; CHECK:    loop # label132:
+; CHECK:    loop # label136:
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    f32x4.mul
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label133:
+; CHECK:    loop # label137:
 ; CHECK:    end_loop
 entry:
   %cmp45.not = icmp eq i32 %N, 0
@@ -2929,7 +2870,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_floats_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_floats_vary_op:
-; CHECK:    loop # label135:
+; CHECK:    loop # label139:
 ; CHECK:    end_loop
 entry:
   %cmp42.not = icmp eq i32 %N, 0
@@ -2975,63 +2916,83 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_bytes_four_floats_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_bytes_four_floats_same_op:
-; CHECK:    loop # label138:
+; CHECK:    loop # label142:
 ; CHECK:    v128.load 0:p2align=0
-; CHECK:    i8x16.shuffle 0, 4, 8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
+; CHECK:    i8x16.extract_lane_s 12
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 13
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 14
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 15
+; CHECK:    f32x4.replace_lane 3
 ; CHECK:    v128.load 0:p2align=0
-; CHECK:    i8x16.shuffle 0, 4, 8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
+; CHECK:    i8x16.extract_lane_s 12
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 13
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 14
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 15
+; CHECK:    f32x4.replace_lane 3
 ; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 1, 5, 9, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 1, 5, 9, 13, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 12, 13, 14, 15, 28, 29, 30, 31, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 2, 6, 10, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 2, 6, 10, 14, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 3, 7, 11, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 3, 7, 11, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    i16x8.extend_low_i8x16_s
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 12, 13, 14, 15, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    v128.store 48:p2align=2
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 8, 9, 10, 11, 24, 25, 26, 27
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i8x16.extract_lane_s 8
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 9
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 10
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 11
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    i8x16.extract_lane_s 8
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 9
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 10
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 11
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 32:p2align=2
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 20, 21, 22, 23, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i8x16.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    i8x16.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 16, 17, 18, 19
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i8x16.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    i8x16.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i8x16.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i8x16.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i8x16.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label139:
+; CHECK:    loop # label143:
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
@@ -3093,7 +3054,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_bytes_four_floats_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_bytes_four_floats_vary_op:
-; CHECK:    loop # label142:
+; CHECK:    loop # label146:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    i8x16.shuffle 0, 4, 8, 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    i16x8.extend_low_i8x16_s
@@ -3149,7 +3110,7 @@ define hidden void @four_bytes_four_floats_vary_op(ptr noundef readonly captures
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label143:
+; CHECK:    loop # label147:
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
 ; CHECK:    i32.load8_s 0
@@ -3211,7 +3172,34 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_floats_four_bytes_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_floats_four_bytes_same_op:
-; CHECK:    loop # label145:
+; CHECK:    loop # label150:
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.const 255, 255, 255, 255
+; CHECK:    v128.and
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.and
+; CHECK:    i16x8.narrow_i32x4_u
+; CHECK:    v128.load 32:p2align=2
+; CHECK:    v128.load 32:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.and
+; CHECK:    v128.load 48:p2align=2
+; CHECK:    v128.load 48:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.and
+; CHECK:    i16x8.narrow_i32x4_u
+; CHECK:    i8x16.narrow_i16x8_u
+; CHECK:    v128.store 0:p2align=0
+; CHECK:    end_loop
+; CHECK:    loop # label151:
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.store8 0
@@ -3265,7 +3253,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_floats_four_bytes_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_floats_four_bytes_vary_op:
-; CHECK:    loop # label147:
+; CHECK:    loop # label153:
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.store8 0
 ; CHECK:    i32.store8 0
@@ -3319,57 +3307,85 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_shorts_four_floats_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_shorts_four_floats_same_op:
-; CHECK:    loop # label150:
-; CHECK:    v128.load 0:p2align=1
+; CHECK:    loop # label156:
 ; CHECK:    v128.load 16:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 8, 9, 16, 17, 24, 25, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    v128.load 0:p2align=1
+; CHECK:    i16x8.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
 ; CHECK:    v128.load 16:p2align=1
-; CHECK:    i8x16.shuffle 0, 1, 8, 9, 16, 17, 24, 25, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
+; CHECK:    i16x8.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
 ; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 2, 3, 10, 11, 18, 19, 26, 27, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 2, 3, 10, 11, 18, 19, 26, 27, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 12, 13, 14, 15, 28, 29, 30, 31, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 4, 5, 12, 13, 20, 21, 28, 29, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 4, 5, 12, 13, 20, 21, 28, 29, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 6, 7, 14, 15, 22, 23, 30, 31, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    i8x16.shuffle 6, 7, 14, 15, 22, 23, 30, 31, 0, 1, 0, 1, 0, 1, 0, 1
-; CHECK:    i32x4.extend_low_i16x8_s
-; CHECK:    f32x4.convert_i32x4_s
-; CHECK:    f32x4.mul
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 12, 13, 14, 15, 28, 29, 30, 31
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    v128.store 48:p2align=2
-; CHECK:    i8x16.shuffle 8, 9, 10, 11, 24, 25, 26, 27, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 8, 9, 10, 11, 24, 25, 26, 27
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i16x8.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    i16x8.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 32:p2align=2
-; CHECK:    i8x16.shuffle 4, 5, 6, 7, 20, 21, 22, 23, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 4, 5, 6, 7, 20, 21, 22, 23
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    v128.load 0:p2align=1
+; CHECK:    i16x8.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    v128.load 0:p2align=1
+; CHECK:    i16x8.extract_lane_s 4
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 5
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 6
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 7
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 16:p2align=2
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 16, 17, 18, 19, 0, 1, 2, 3, 0, 1, 2, 3
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 16, 17, 18, 19
-; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
+; CHECK:    i16x8.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    i16x8.extract_lane_s 0
+; CHECK:    f32x4.splat
+; CHECK:    i16x8.extract_lane_s 1
+; CHECK:    f32x4.replace_lane 1
+; CHECK:    i16x8.extract_lane_s 2
+; CHECK:    f32x4.replace_lane 2
+; CHECK:    i16x8.extract_lane_s 3
+; CHECK:    f32x4.replace_lane 3
+; CHECK:    f32x4.mul
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label151:
+; CHECK:    loop # label157:
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
@@ -3431,7 +3447,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_shorts_four_floats_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_shorts_four_floats_vary_op:
-; CHECK:    loop # label154:
+; CHECK:    loop # label160:
 ; CHECK:    v128.load 0:p2align=1
 ; CHECK:    v128.load 16:p2align=1
 ; CHECK:    i8x16.shuffle 0, 1, 8, 9, 16, 17, 24, 25, 0, 1, 0, 1, 0, 1, 0, 1
@@ -3481,7 +3497,7 @@ define hidden void @four_shorts_four_floats_vary_op(ptr noundef readonly capture
 ; CHECK:    i8x16.shuffle 0, 1, 2, 3, 4, 5, 6, 7, 24, 25, 26, 27, 28, 29, 30, 31
 ; CHECK:    v128.store 0:p2align=2
 ; CHECK:    end_loop
-; CHECK:    loop # label155:
+; CHECK:    loop # label161:
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
 ; CHECK:    i32.load16_s 0
@@ -3543,7 +3559,34 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_floats_four_shorts_same_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_floats_four_shorts_same_op:
-; CHECK:    loop # label157:
+; CHECK:    loop # label164:
+; CHECK:    v128.load 32:p2align=2
+; CHECK:    v128.load 32:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.const 65535, 65535, 65535, 65535
+; CHECK:    v128.and
+; CHECK:    v128.load 48:p2align=2
+; CHECK:    v128.load 48:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.and
+; CHECK:    i16x8.narrow_i32x4_u
+; CHECK:    v128.store 16:p2align=1
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    v128.load 0:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.and
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    v128.load 16:p2align=2
+; CHECK:    f32x4.mul
+; CHECK:    i32x4.trunc_sat_f32x4_s
+; CHECK:    v128.and
+; CHECK:    i16x8.narrow_i32x4_u
+; CHECK:    v128.store 0:p2align=1
+; CHECK:    end_loop
+; CHECK:    loop # label165:
 ; CHECK:    i32.store16 0
 ; CHECK:    i32.store16 0
 ; CHECK:    i32.store16 0
@@ -3597,7 +3640,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @four_floats_four_shorts_vary_op(ptr noundef readonly captures(none) %a, ptr noundef readonly captures(none) %b, ptr noundef writeonly captures(none) %res, i32 noundef %N) {
 ; CHECK-LABEL: four_floats_four_shorts_vary_op:
-; CHECK:    loop # label159:
+; CHECK:    loop # label167:
 ; CHECK:    i32.store16 0
 ; CHECK:    i32.store16 0
 ; CHECK:    i32.store16 0
@@ -3651,7 +3694,7 @@ for.body:                                         ; preds = %entry, %for.body
 
 define hidden void @mac_3d_i8(ptr dead_on_unwind noalias writable writeonly sret(%struct.ThreeBytes) align 1 captures(none) %0, ptr noundef readonly captures(none) %1, ptr noundef readonly captures(none) %2, i32 noundef %3) {
 ; CHECK-LABEL: mac_3d_i8:
-; CHECK:    loop # label162:
+; CHECK:    loop # label170:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
@@ -3708,7 +3751,7 @@ define hidden void @mac_4d_i8(ptr dead_on_unwind noalias writable writeonly sret
 ; CHECK-LABEL: mac_4d_i8:
 ; CHECK:    i32.store 0:p2align=0
 ; CHECK:    v128.const 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-; CHECK:    loop # label166:
+; CHECK:    loop # label174:
 ; CHECK:    v128.load 0:p2align=0
 ; CHECK:    v128.load 16:p2align=0
 ; CHECK:    i8x16.shuffle 3, 7, 11, 15, 19, 23, 27, 31, 0, 0, 0, 0, 0, 0, 0, 0
@@ -3762,7 +3805,7 @@ define hidden void @mac_4d_i8(ptr dead_on_unwind noalias writable writeonly sret
 ; CHECK:    i8x16.shuffle 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 ; CHECK:    i8x16.add
 ; CHECK:    i8x16.extract_lane_u 0
-; CHECK:    loop # label167:
+; CHECK:    loop # label175:
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
 ; CHECK:    i32.load8_u 0
@@ -3837,7 +3880,7 @@ define hidden void @mac_2d_i64(ptr dead_on_unwind noalias writable sret(%struct.
 ; CHECK:    v128.const 0, 0
 ; CHECK:    i64x2.replace_lane 0
 ; CHECK:    i64x2.replace_lane 0
-; CHECK:    loop # label171:
+; CHECK:    loop # label179:
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    i8x16.shuffle 4, 5, 6, 7, 12, 13, 14, 15, 0, 1, 2, 3, 0, 1, 2, 3
 ; CHECK:    i64x2.extend_low_i32x4_u
@@ -3859,7 +3902,7 @@ define hidden void @mac_2d_i64(ptr dead_on_unwind noalias writable sret(%struct.
 ; CHECK:    i8x16.shuffle 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7
 ; CHECK:    i64x2.add
 ; CHECK:    i64x2.extract_lane 0
-; CHECK:    loop # label172:
+; CHECK:    loop # label180:
 ; CHECK:    end_loop
 entry:
   %agg.result.promoted = load i64, ptr %agg.result, align 8
@@ -3912,7 +3955,7 @@ define hidden void @mac_4d_i64(ptr dead_on_unwind noalias writable sret(%struct.
 ; CHECK:    i64x2.replace_lane 0
 ; CHECK:    i64x2.replace_lane 0
 ; CHECK:    i64x2.replace_lane 0
-; CHECK:    loop # label176:
+; CHECK:    loop # label184:
 ; CHECK:    v128.load 0:p2align=2
 ; CHECK:    v128.load 16:p2align=2
 ; CHECK:    i8x16.shuffle 12, 13, 14, 15, 28, 29, 30, 31, 0, 1, 2, 3, 0, 1, 2, 3
@@ -3954,7 +3997,7 @@ define hidden void @mac_4d_i64(ptr dead_on_unwind noalias writable sret(%struct.
 ; CHECK:    i8x16.shuffle 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7
 ; CHECK:    i64x2.add
 ; CHECK:    i64x2.extract_lane 0
-; CHECK:    loop # label177:
+; CHECK:    loop # label185:
 ; CHECK:    end_loop
 entry:
   %agg.result.promoted = load i64, ptr %agg.result, align 8

@@ -509,6 +509,9 @@ struct VPlanTransforms {
   static std::unique_ptr<VPlan>
   narrowInterleaveGroups(VPlan &Plan, const TargetTransformInfo &TTI);
 
+  static bool widenInterleaveGroups(VPlan &Plan,
+                                    const TargetTransformInfo &TTI);
+
   /// Adapts the vector loop region for tail folding by introducing a header
   /// mask and conditionally executing the content of the region:
   ///

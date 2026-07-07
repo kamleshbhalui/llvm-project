@@ -1126,6 +1126,10 @@ struct VPRecipeWithIRFlags : public VPSingleDefRecipe, public VPIRFlags {
       : VPSingleDefRecipe(SC, Operands, ResultTy, /*UV=*/nullptr, DL),
         VPIRFlags(Flags) {}
 
+  unsigned WidenScale = 1;
+  unsigned getWidenScale() const { return WidenScale; }
+  void setWidenScale(unsigned Scale) { WidenScale = Scale; }
+
   static inline bool classof(const VPRecipeBase *R) {
     return R->getVPRecipeID() == VPRecipeBase::VPBlendSC ||
            R->getVPRecipeID() == VPRecipeBase::VPInstructionSC ||
@@ -1838,10 +1842,14 @@ public:
   VPWidenRecipe *clone() override { return cloneWithOperands(operands()); }
 
   VPWidenRecipe *cloneWithOperands(ArrayRef<VPValue *> NewOperands) {
-    if (auto *UV = getUnderlyingValue())
-      return new VPWidenRecipe(*cast<Instruction>(UV), NewOperands, *this,
-                               *this, getDebugLoc());
-    return new VPWidenRecipe(Opcode, NewOperands, *this, *this, getDebugLoc());
+    VPWidenRecipe *C =
+        getUnderlyingValue()
+            ? new VPWidenRecipe(*cast<Instruction>(getUnderlyingValue()),
+                                NewOperands, *this, *this, getDebugLoc())
+            : new VPWidenRecipe(Opcode, NewOperands, *this, *this,
+                                getDebugLoc());
+    C->setWidenScale(getWidenScale());
+    return C;
   }
 
   VP_CLASSOF_IMPL(VPRecipeBase::VPWidenSC)
@@ -1897,9 +1905,12 @@ public:
   ~VPWidenCastRecipe() override = default;
 
   VPWidenCastRecipe *clone() override {
-    return new VPWidenCastRecipe(Opcode, getOperand(0), getScalarType(),
-                                 cast_or_null<CastInst>(getUnderlyingValue()),
-                                 *this, *this, getDebugLoc());
+    auto *C = new VPWidenCastRecipe(
+        Opcode, getOperand(0), getScalarType(),
+        cast_or_null<CastInst>(getUnderlyingValue()), *this, *this,
+        getDebugLoc());
+    C->setWidenScale(getWidenScale());
+    return C;
   }
 
   VP_CLASSOF_IMPL(VPRecipeBase::VPWidenCastSC)
@@ -1984,13 +1995,16 @@ public:
   ~VPWidenIntrinsicRecipe() override = default;
 
   VPWidenIntrinsicRecipe *clone() override {
-    if (Value *CI = getUnderlyingValue())
-      return new VPWidenIntrinsicRecipe(*cast<CallInst>(CI), VectorIntrinsicID,
-                                        operands(), getScalarType(), *this,
-                                        *this, getDebugLoc());
-    return new VPWidenIntrinsicRecipe(VectorIntrinsicID, operands(),
-                                      getScalarType(), *this, *this,
-                                      getDebugLoc());
+    VPWidenIntrinsicRecipe *C =
+        getUnderlyingValue()
+            ? new VPWidenIntrinsicRecipe(
+                  *cast<CallInst>(getUnderlyingValue()), VectorIntrinsicID,
+                  operands(), getScalarType(), *this, *this, getDebugLoc())
+            : new VPWidenIntrinsicRecipe(VectorIntrinsicID, operands(),
+                                         getScalarType(), *this, *this,
+                                         getDebugLoc());
+    C->setWidenScale(getWidenScale());
+    return C;
   }
 
   static inline bool classof(const VPRecipeBase *R) {
@@ -3787,6 +3801,13 @@ public:
 
   /// Returns the alignment of the memory access.
   Align getAlign() const { return Alignment; }
+  void setAlignment(Align NewAlignment) { Alignment = NewAlignment; }
+
+  unsigned WidenScale = 1;
+
+  unsigned getWidenScale() const { return WidenScale; }
+
+  void setWidenScale(unsigned Scale) { WidenScale = Scale; }
 
   /// Return the cost of this VPWidenMemoryRecipe.
   InstructionCost computeCost(ElementCount VF, VPCostContext &Ctx) const;
@@ -3807,8 +3828,12 @@ struct LLVM_ABI_FOR_TEST VPWidenLoadRecipe final : public VPSingleDefRecipe,
   }
 
   VPWidenLoadRecipe *clone() override {
-    return new VPWidenLoadRecipe(cast<LoadInst>(Ingredient), getAddr(),
-                                 getMask(), Consecutive, *this, getDebugLoc());
+    auto *C =
+        new VPWidenLoadRecipe(cast<LoadInst>(Ingredient), getAddr(), getMask(),
+                              Consecutive, *this, getDebugLoc());
+    C->setWidenScale(getWidenScale());
+    C->setAlignment(getAlign());
+    return C;
   }
 
   VP_CLASSOF_IMPL(VPRecipeBase::VPWidenLoadSC);
@@ -3854,6 +3879,7 @@ struct LLVM_ABI_FOR_TEST VPWidenLoadEVLRecipe final
                           L.getIngredient().getType(), &L.getIngredient(),
                           L.getDebugLoc()),
         VPWidenMemoryRecipe(L.getIngredient(), L.isConsecutive(), L) {
+    setAlignment(L.getAlign());
     setMask(Mask);
   }
 
@@ -3906,9 +3932,12 @@ struct LLVM_ABI_FOR_TEST VPWidenStoreRecipe final : public VPRecipeBase,
   }
 
   VPWidenStoreRecipe *clone() override {
-    return new VPWidenStoreRecipe(cast<StoreInst>(Ingredient), getAddr(),
-                                  getStoredValue(), getMask(), Consecutive,
-                                  *this, getDebugLoc());
+    auto *C = new VPWidenStoreRecipe(cast<StoreInst>(Ingredient), getAddr(),
+                                     getStoredValue(), getMask(), Consecutive,
+                                     *this, getDebugLoc());
+    C->setWidenScale(getWidenScale());
+    C->setAlignment(getAlign());
+    return C;
   }
 
   VP_CLASSOF_IMPL(VPRecipeBase::VPWidenStoreSC);
@@ -3956,6 +3985,7 @@ struct LLVM_ABI_FOR_TEST VPWidenStoreEVLRecipe final
       : VPRecipeBase(VPRecipeBase::VPWidenStoreEVLSC, {Addr, StoredVal, &EVL},
                      S.getDebugLoc()),
         VPWidenMemoryRecipe(S.getIngredient(), S.isConsecutive(), S) {
+    setAlignment(S.getAlign());
     setMask(Mask);
   }
 

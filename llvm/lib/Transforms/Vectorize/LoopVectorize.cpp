@@ -6631,8 +6631,11 @@ void LoopVectorizationPlanner::buildVPlans(VPlan &VPlan1, ElementCount MinVF,
     }
 
     if (auto P =
-            RUN_VPLAN_PASS(VPlanTransforms::narrowInterleaveGroups, *Plan, TTI))
+            RUN_VPLAN_PASS(VPlanTransforms::narrowInterleaveGroups, *Plan, TTI)) {
       VPlans.push_back(std::move(P));
+    } else {
+      RUN_VPLAN_PASS(VPlanTransforms::widenInterleaveGroups, *Plan, TTI);
+    }
 
     RUN_VPLAN_PASS_NO_VERIFY(printOptimizedVPlan, *Plan);
     assert(verifyVPlanIsValid(*Plan) && "VPlan is invalid");

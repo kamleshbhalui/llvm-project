@@ -37,11 +37,7 @@ define void @load_store_interleave_group(ptr noalias %data) {
 ; VF4-NEXT:    [[TMP1:%.*]] = shl nsw i64 [[INDEX]], 1
 ; VF4-NEXT:    [[TMP2:%.*]] = getelementptr inbounds i64, ptr [[DATA]], i64 [[TMP1]]
 ; VF4-NEXT:    [[WIDE_VEC:%.*]] = load <8 x i64>, ptr [[TMP2]], align 8
-; VF4-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <8 x i64> [[WIDE_VEC]], <8 x i64> poison, <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-; VF4-NEXT:    [[STRIDED_VEC1:%.*]] = shufflevector <8 x i64> [[WIDE_VEC]], <8 x i64> poison, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
-; VF4-NEXT:    [[TMP3:%.*]] = shufflevector <4 x i64> [[STRIDED_VEC]], <4 x i64> [[STRIDED_VEC1]], <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7>
-; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <8 x i64> [[TMP3]], <8 x i64> poison, <8 x i32> <i32 0, i32 4, i32 1, i32 5, i32 2, i32 6, i32 3, i32 7>
-; VF4-NEXT:    store <8 x i64> [[INTERLEAVED_VEC]], ptr [[TMP2]], align 8
+; VF4-NEXT:    store <8 x i64> [[WIDE_VEC]], ptr [[TMP2]], align 8
 ; VF4-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 4
 ; VF4-NEXT:    [[TMP4:%.*]] = icmp eq i64 [[INDEX_NEXT]], 100
 ; VF4-NEXT:    br i1 [[TMP4]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP0:![0-9]+]]
@@ -104,12 +100,8 @@ define void @load_store_interleave_group_different_objecs(ptr noalias %src, ptr 
 ; VF4-NEXT:    [[TMP1:%.*]] = shl nsw i64 [[INDEX]], 1
 ; VF4-NEXT:    [[TMP2:%.*]] = getelementptr inbounds i64, ptr [[SRC]], i64 [[TMP1]]
 ; VF4-NEXT:    [[WIDE_VEC:%.*]] = load <8 x i64>, ptr [[TMP2]], align 8
-; VF4-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <8 x i64> [[WIDE_VEC]], <8 x i64> poison, <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-; VF4-NEXT:    [[STRIDED_VEC1:%.*]] = shufflevector <8 x i64> [[WIDE_VEC]], <8 x i64> poison, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
 ; VF4-NEXT:    [[TMP3:%.*]] = getelementptr inbounds i64, ptr [[DST]], i64 [[TMP1]]
-; VF4-NEXT:    [[TMP4:%.*]] = shufflevector <4 x i64> [[STRIDED_VEC]], <4 x i64> [[STRIDED_VEC1]], <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7>
-; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <8 x i64> [[TMP4]], <8 x i64> poison, <8 x i32> <i32 0, i32 4, i32 1, i32 5, i32 2, i32 6, i32 3, i32 7>
-; VF4-NEXT:    store <8 x i64> [[INTERLEAVED_VEC]], ptr [[TMP3]], align 8
+; VF4-NEXT:    store <8 x i64> [[WIDE_VEC]], ptr [[TMP3]], align 8
 ; VF4-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 4
 ; VF4-NEXT:    [[TMP5:%.*]] = icmp eq i64 [[INDEX_NEXT]], 100
 ; VF4-NEXT:    br i1 [[TMP5]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP3:![0-9]+]]
@@ -636,14 +628,10 @@ define void @multiple_store_groups_storing_same_load_group(ptr noalias %A, ptr n
 ; VF4-NEXT:    [[INDEX:%.*]] = phi i64 [ 0, %[[VECTOR_PH]] ], [ [[INDEX_NEXT:%.*]], %[[VECTOR_BODY]] ]
 ; VF4-NEXT:    [[TMP0:%.*]] = getelementptr { double, double }, ptr [[A]], i64 [[INDEX]]
 ; VF4-NEXT:    [[WIDE_VEC:%.*]] = load <8 x double>, ptr [[TMP0]], align 8
-; VF4-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <8 x double> [[WIDE_VEC]], <8 x double> poison, <4 x i32> <i32 0, i32 2, i32 4, i32 6>
-; VF4-NEXT:    [[STRIDED_VEC1:%.*]] = shufflevector <8 x double> [[WIDE_VEC]], <8 x double> poison, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
 ; VF4-NEXT:    [[TMP1:%.*]] = getelementptr { double, double }, ptr [[B]], i64 [[INDEX]]
-; VF4-NEXT:    [[TMP2:%.*]] = shufflevector <4 x double> [[STRIDED_VEC]], <4 x double> [[STRIDED_VEC1]], <8 x i32> <i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7>
-; VF4-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <8 x double> [[TMP2]], <8 x double> poison, <8 x i32> <i32 0, i32 4, i32 1, i32 5, i32 2, i32 6, i32 3, i32 7>
-; VF4-NEXT:    store <8 x double> [[INTERLEAVED_VEC]], ptr [[TMP1]], align 8
+; VF4-NEXT:    store <8 x double> [[WIDE_VEC]], ptr [[TMP1]], align 8
 ; VF4-NEXT:    [[TMP3:%.*]] = getelementptr { double, double }, ptr [[C]], i64 [[INDEX]]
-; VF4-NEXT:    store <8 x double> [[INTERLEAVED_VEC]], ptr [[TMP3]], align 8
+; VF4-NEXT:    store <8 x double> [[WIDE_VEC]], ptr [[TMP3]], align 8
 ; VF4-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 4
 ; VF4-NEXT:    [[TMP4:%.*]] = icmp eq i64 [[INDEX_NEXT]], 1000
 ; VF4-NEXT:    br i1 [[TMP4]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP11:![0-9]+]]

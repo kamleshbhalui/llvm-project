@@ -43,11 +43,7 @@ define void @max_vf(ptr noalias nocapture %p) {
 ; CHECK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds [[STRUCT_PAIR:%.*]], ptr [[P]], i64 [[INDEX]], i32 0
 ; CHECK-NEXT:    [[TMP2:%.*]] = getelementptr inbounds [[STRUCT_PAIR]], ptr [[P]], i64 [[TMP0]], i32 0
 ; CHECK-NEXT:    [[WIDE_VEC:%.*]] = load <4 x i32>, ptr [[TMP1]], align 4
-; CHECK-NEXT:    [[STRIDED_VEC:%.*]] = shufflevector <4 x i32> [[WIDE_VEC]], <4 x i32> poison, <2 x i32> <i32 0, i32 2>
-; CHECK-NEXT:    [[STRIDED_VEC1:%.*]] = shufflevector <4 x i32> [[WIDE_VEC]], <4 x i32> poison, <2 x i32> <i32 1, i32 3>
-; CHECK-NEXT:    [[TMP3:%.*]] = shufflevector <2 x i32> [[STRIDED_VEC]], <2 x i32> [[STRIDED_VEC1]], <4 x i32> <i32 0, i32 1, i32 2, i32 3>
-; CHECK-NEXT:    [[INTERLEAVED_VEC:%.*]] = shufflevector <4 x i32> [[TMP3]], <4 x i32> poison, <4 x i32> <i32 0, i32 2, i32 1, i32 3>
-; CHECK-NEXT:    store <4 x i32> [[INTERLEAVED_VEC]], ptr [[TMP2]], align 4
+; CHECK-NEXT:    store <4 x i32> [[WIDE_VEC]], ptr [[TMP2]], align 4
 ; CHECK-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 2
 ; CHECK-NEXT:    [[TMP4:%.*]] = icmp eq i64 [[INDEX_NEXT]], 1000
 ; CHECK-NEXT:    br i1 [[TMP4]], label %[[MIDDLE_BLOCK:.*]], label %[[VECTOR_BODY]], !llvm.loop [[LOOP0:![0-9]+]]

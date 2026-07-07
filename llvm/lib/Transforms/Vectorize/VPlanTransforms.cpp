@@ -5742,6 +5742,13 @@ VPlanTransforms::expandSCEVs(VPlan &Plan, ScalarEvolution &SE) {
   return ExpandedSCEVs;
 }
 
+static Type *
+getFullConsecutiveInterleaveGroupElementTy(VPInterleaveRecipe *InterleaveR);
+
+static VPInterleaveRecipe *
+getFullConsecutiveInterleaveGroupMember(VPValue *V, unsigned MemberIdx,
+                                        unsigned ExpectedIF);
+
 /// Returns true if \p V is VPWidenLoadRecipe or VPInterleaveRecipe that can be
 /// converted to a narrower recipe. \p V is used by a wide recipe that feeds a
 /// store interleave group at index \p Idx, \p WideMember0 is the recipe feeding
@@ -5753,13 +5760,16 @@ VPlanTransforms::expandSCEVs(VPlan &Plan, ScalarEvolution &SE) {
 /// A live-in or recipe defined outside the loop region can be converted, if it
 /// is the same across all lanes, or we can create a BuildVector for it.
 static bool canNarrowLoad(VPSingleDefRecipe *WideMember0, unsigned OpIdx,
-                          VPValue *OpV, unsigned Idx, bool IsScalable) {
+                          VPValue *OpV, unsigned Idx, bool IsScalable,
+                          bool ForWiden = false, unsigned ExpectedIF = 0) {
   VPValue *Member0Op = WideMember0->getOperand(OpIdx);
   if (Member0Op->isDefinedOutsideLoopRegions()) {
     // Operand matches Member0, broadcast across all fields for both live-ins
     // and recipes.
     if (Member0Op == OpV)
       return true;
+    if (ForWiden)
+      return false;
     // Otherwise distinct per-field VPValues are assembled into a BuildVector.
     return !IsScalable && OpV->isDefinedOutsideLoopRegions() &&
            OpV->getScalarType() == Member0Op->getScalarType();
@@ -5768,15 +5778,21 @@ static bool canNarrowLoad(VPSingleDefRecipe *WideMember0, unsigned OpIdx,
   if (auto *W = dyn_cast<VPWidenLoadRecipe>(Member0OpR))
     // For scalable VFs, the narrowed plan processes vscale iterations at once,
     // so a shared wide load cannot be narrowed to a uniform scalar; bail out.
-    return !IsScalable && !W->getMask() && W->isConsecutive() &&
+    return !ForWiden && !IsScalable && !W->getMask() && W->isConsecutive() &&
            Member0Op == OpV;
-  if (auto *IR = dyn_cast<VPInterleaveRecipe>(Member0OpR))
-    return IR->getInterleaveGroup()->isFull() && IR->getVPValue(Idx) == OpV;
+  if (auto *IR = dyn_cast<VPInterleaveRecipe>(Member0OpR)) {
+    if (IR->getVPValue(Idx) != OpV)
+      return false;
+    if (!ForWiden)
+      return IR->getInterleaveGroup()->isFull();
+    return getFullConsecutiveInterleaveGroupElementTy(IR) &&
+           IR->getInterleaveGroup()->getFactor() == ExpectedIF;
+  }
   return false;
 }
 
 static bool canNarrowOps(ArrayRef<VPValue *> Ops, bool IsScalable,
-                         const TargetTransformInfo &TTI) {
+                         const TargetTransformInfo &TTI, bool ForWiden = false) {
   SmallVector<VPValue *> Ops0;
   auto *WideMember0 = dyn_cast<VPRecipeWithIRFlags>(Ops[0]);
   if (!WideMember0)
@@ -5807,28 +5823,41 @@ static bool canNarrowOps(ArrayRef<VPValue *> Ops, bool IsScalable,
       continue;
     }
 
-    if (canNarrowOps(OpsI, IsScalable, TTI))
+    if (canNarrowOps(OpsI, IsScalable, TTI, ForWiden))
       continue;
 
-    if (any_of(enumerate(OpsI), [WideMember0, Idx, IsScalable](const auto &P) {
-          const auto &[OpIdx, OpV] = P;
-          return !canNarrowLoad(WideMember0, Idx, OpV, OpIdx, IsScalable);
-        }))
+    unsigned ExpectedIF = OpsI.size();
+    if (ForWiden) {
+      auto *LoadGroup0 =
+          getFullConsecutiveInterleaveGroupMember(OpsI.front(), 0, ExpectedIF);
+      if (LoadGroup0) {
+        if (all_of(enumerate(OpsI),
+                   [ExpectedIF, LoadGroup0](const auto &P) {
+                     return getFullConsecutiveInterleaveGroupMember(
+                                P.value(), P.index(), ExpectedIF) ==
+                            LoadGroup0;
+                   }))
+          continue;
+        return false;
+      }
+    }
+    if (any_of(enumerate(OpsI),
+               [WideMember0, Idx, IsScalable, ForWiden,
+                ExpectedIF](const auto &P) {
+                 const auto &[OpIdx, OpV] = P;
+                 return !canNarrowLoad(WideMember0, Idx, OpV, OpIdx, IsScalable,
+                                       ForWiden, ExpectedIF);
+               }))
       return false;
   }
 
   return true;
 }
 
-/// Returns VF from \p VFs if \p IR is a full interleave group with factor and
-/// number of members both equal to VF. The interleave group must also access
-/// the full vector width.
-static std::optional<ElementCount>
-isConsecutiveInterleaveGroup(VPInterleaveRecipe *InterleaveR,
-                             ArrayRef<ElementCount> VFs,
-                             const TargetTransformInfo &TTI) {
+static Type *
+getFullConsecutiveInterleaveGroupElementTy(VPInterleaveRecipe *InterleaveR) {
   if (!InterleaveR || InterleaveR->getMask())
-    return std::nullopt;
+    return nullptr;
 
   Type *GroupElementTy = nullptr;
   if (InterleaveR->getStoredValues().empty()) {
@@ -5836,19 +5865,31 @@ isConsecutiveInterleaveGroup(VPInterleaveRecipe *InterleaveR,
     if (!all_of(InterleaveR->definedValues(), [GroupElementTy](VPValue *Op) {
           return Op->getScalarType() == GroupElementTy;
         }))
-      return std::nullopt;
+      return nullptr;
   } else {
     GroupElementTy = InterleaveR->getStoredValues()[0]->getScalarType();
     if (!all_of(InterleaveR->getStoredValues(), [GroupElementTy](VPValue *Op) {
           return Op->getScalarType() == GroupElementTy;
         }))
-      return std::nullopt;
+      return nullptr;
   }
 
-  auto IG = InterleaveR->getInterleaveGroup();
-  if (IG->getFactor() != IG->getNumMembers())
+  const auto *IG = InterleaveR->getInterleaveGroup();
+  if (IG->isReverse() || IG->getFactor() != IG->getNumMembers())
+    return nullptr;
+  return GroupElementTy;
+}
+
+static std::optional<ElementCount>
+isConsecutiveInterleaveGroup(VPInterleaveRecipe *InterleaveR,
+                             ArrayRef<ElementCount> VFs,
+                             const TargetTransformInfo &TTI) {
+  Type *GroupElementTy =
+      getFullConsecutiveInterleaveGroupElementTy(InterleaveR);
+  if (!GroupElementTy)
     return std::nullopt;
 
+  const auto *IG = InterleaveR->getInterleaveGroup();
   auto GetVectorBitWidthForVF = [&TTI](ElementCount VF) {
     TypeSize Size = TTI.getRegisterBitWidth(
         VF.isFixed() ? TargetTransformInfo::RGK_FixedWidthVector
@@ -5874,6 +5915,17 @@ static bool isAlreadyNarrow(VPValue *VPV) {
     return true;
   auto *RepR = dyn_cast<VPReplicateRecipe>(VPV);
   return RepR && RepR->isSingleScalar();
+}
+
+static VPInterleaveRecipe *
+getFullConsecutiveInterleaveGroupMember(VPValue *V, unsigned MemberIdx,
+                                        unsigned ExpectedIF) {
+  auto *IR = dyn_cast_or_null<VPInterleaveRecipe>(V->getDefiningRecipe());
+  if (!IR || !getFullConsecutiveInterleaveGroupElementTy(IR) ||
+      IR->getInterleaveGroup()->getFactor() != ExpectedIF ||
+      IR->getVPValue(MemberIdx) != V)
+    return nullptr;
+  return IR;
 }
 
 // Convert the wide recipes defining the VPValues in \p Members feeding an
@@ -6133,6 +6185,139 @@ VPlanTransforms::narrowInterleaveGroups(VPlan &Plan,
                  IsaPred<VPVectorPointerRecipe>) &&
          "All VPVectorPointerRecipes should have been removed");
   return NewPlan;
+}
+
+static VPValue *widenInterleaveGroupOp(ArrayRef<VPValue *> Members,
+                                       DenseMap<VPValue *, VPValue *> &WidenedOps,
+                                       const TargetTransformInfo &TTI) {
+  unsigned IF = Members.size();
+  VPValue *V = Members.front();
+  if (auto It = WidenedOps.find(V); It != WidenedOps.end())
+    return It->second;
+
+  if (V->isDefinedOutsideLoopRegions() || isAlreadyNarrow(V))
+    return V;
+
+  VPRecipeBase *R = V->getDefiningRecipe();
+  if (isa<VPWidenRecipe, VPWidenCastRecipe, VPWidenIntrinsicRecipe>(R)) {
+    auto *WideMember0 = cast<VPRecipeWithIRFlags>(R);
+    for (VPValue *Member : Members.drop_front())
+      WideMember0->intersectFlags(*cast<VPRecipeWithIRFlags>(Member));
+    for (unsigned Idx = 0, E = WideMember0->getNumOperands(); Idx != E; ++Idx) {
+      SmallVector<VPValue *> OpsI;
+      for (VPValue *Member : Members)
+        OpsI.push_back(Member->getDefiningRecipe()->getOperand(Idx));
+      auto *WideIntrinsic0 = dyn_cast<VPWidenIntrinsicRecipe>(WideMember0);
+      if (WideIntrinsic0 &&
+          isVectorIntrinsicWithScalarOpAtArg(
+              WideIntrinsic0->getVectorIntrinsicID(), Idx, &TTI)) {
+        WideMember0->setOperand(Idx, OpsI.front());
+        continue;
+      }
+      WideMember0->setOperand(Idx,
+                              widenInterleaveGroupOp(OpsI, WidenedOps, TTI));
+    }
+    WideMember0->setWidenScale(IF);
+    WidenedOps[V] = V;
+    return V;
+  }
+
+  auto *LoadGroup = cast<VPInterleaveRecipe>(R);
+  assert(all_of(enumerate(Members), [IF, LoadGroup](const auto &Op) {
+           return getFullConsecutiveInterleaveGroupMember(
+                      Op.value(), Op.index(), IF) == LoadGroup;
+         }) &&
+         "expected matching full consecutive load interleave group members");
+  auto *LI = cast<LoadInst>(LoadGroup->getInterleaveGroup()->getInsertPos());
+  auto *L = new VPWidenLoadRecipe(*LI, LoadGroup->getAddr(), LoadGroup->getMask(),
+                                  true, *LoadGroup,
+                                  LoadGroup->getDebugLoc());
+  L->setWidenScale(IF);
+  L->setAlignment(LoadGroup->getInterleaveGroup()->getAlign());
+  L->insertBefore(LoadGroup);
+  for (VPValue *Member : Members)
+    WidenedOps[Member] = L;
+  return L;
+}
+
+static bool widenChainRecipesAreSingleUse(ArrayRef<VPValue *> Stored) {
+  SmallVector<VPValue *> Worklist(Stored.begin(), Stored.end());
+  SmallPtrSet<VPValue *, 8> Visited;
+  while (!Worklist.empty()) {
+    VPValue *V = Worklist.pop_back_val();
+    if (!Visited.insert(V).second || V->isDefinedOutsideLoopRegions())
+      continue;
+    VPRecipeBase *R = V->getDefiningRecipe();
+    if (isa_and_nonnull<VPWidenRecipe, VPWidenCastRecipe,
+                        VPWidenIntrinsicRecipe>(R)) {
+      if (V->getNumUsers() != 1)
+        return false;
+      for (VPValue *Op : R->operands())
+        Worklist.push_back(Op);
+    }
+  }
+  return true;
+}
+
+bool VPlanTransforms::widenInterleaveGroups(VPlan &Plan,
+                                            const TargetTransformInfo &TTI) {
+  VPRegionBlock *VectorLoop = Plan.getVectorLoopRegion();
+  if (!VectorLoop)
+    return false;
+
+  if (VectorLoop->getEntryBasicBlock() != VectorLoop->getExitingBasicBlock())
+    return false;
+
+  bool IsScalable = any_of(Plan.vectorFactors(),
+                           [](ElementCount VF) { return VF.isScalable(); });
+
+  SmallVector<VPInterleaveRecipe *> StoreGroups;
+  for (auto &R : *VectorLoop->getEntryBasicBlock()) {
+    auto *InterleaveR = dyn_cast<VPInterleaveRecipe>(&R);
+    if (!InterleaveR || InterleaveR->getStoredValues().empty())
+      continue;
+    if (!getFullConsecutiveInterleaveGroupElementTy(InterleaveR))
+      continue;
+
+    ArrayRef<VPValue *> Stored = InterleaveR->getStoredValues();
+    unsigned IF = InterleaveR->getInterleaveGroup()->getFactor();
+    auto *LoadGroup0 =
+        getFullConsecutiveInterleaveGroupMember(Stored.front(), 0, IF);
+    bool DirectLoadMembers =
+        LoadGroup0 &&
+        all_of(enumerate(Stored), [IF, LoadGroup0](const auto &Op) {
+          return getFullConsecutiveInterleaveGroupMember(
+                     Op.value(), Op.index(), IF) == LoadGroup0;
+        });
+    if (!DirectLoadMembers &&
+        (!canNarrowOps(Stored, IsScalable, TTI, true) ||
+         !widenChainRecipesAreSingleUse(Stored)))
+      continue;
+
+    StoreGroups.push_back(InterleaveR);
+  }
+
+  if (StoreGroups.empty())
+    return false;
+
+  DenseMap<VPValue *, VPValue *> WidenedOps;
+  for (auto *StoreGroup : StoreGroups) {
+    VPValue *Res =
+        widenInterleaveGroupOp(StoreGroup->getStoredValues(), WidenedOps, TTI);
+    unsigned IF = StoreGroup->getInterleaveGroup()->getNumMembers();
+    auto *SI =
+        cast<StoreInst>(StoreGroup->getInterleaveGroup()->getInsertPos());
+    auto *S = new VPWidenStoreRecipe(*SI, StoreGroup->getAddr(), Res,
+                                     nullptr, true,
+                                     *StoreGroup, StoreGroup->getDebugLoc());
+    S->setWidenScale(IF);
+    S->setAlignment(StoreGroup->getInterleaveGroup()->getAlign());
+    S->insertBefore(StoreGroup);
+    StoreGroup->eraseFromParent();
+  }
+
+  removeDeadRecipes(Plan);
+  return true;
 }
 
 /// Add branch weight metadata, if the \p Plan's middle block is terminated by a

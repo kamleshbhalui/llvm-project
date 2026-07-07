@@ -393,9 +393,9 @@ define void @addmul(ptr noalias noundef %x, ptr noundef %y, ptr noundef %z, i32 
 ; CHECK-NEXT:    [[WIDE_VEC:%.*]] = load <32 x i16>, ptr [[TMP0]], align 2
 ; CHECK-NEXT:    [[TMP1:%.*]] = getelementptr inbounds nuw [2 x i8], ptr [[Z:%.*]], i64 [[OFFSET_IDX]]
 ; CHECK-NEXT:    [[WIDE_VEC31:%.*]] = load <32 x i16>, ptr [[TMP1]], align 2
+; CHECK-NEXT:    [[TMP4:%.*]] = mul <32 x i16> [[WIDE_VEC31]], [[WIDE_VEC]]
 ; CHECK-NEXT:    [[TMP2:%.*]] = getelementptr inbounds nuw [2 x i8], ptr [[X:%.*]], i64 [[OFFSET_IDX]]
 ; CHECK-NEXT:    [[WIDE_VEC36:%.*]] = load <32 x i16>, ptr [[TMP2]], align 2
-; CHECK-NEXT:    [[TMP4:%.*]] = mul <32 x i16> [[WIDE_VEC31]], [[WIDE_VEC]]
 ; CHECK-NEXT:    [[INTERLEAVED_VEC:%.*]] = add <32 x i16> [[TMP4]], [[WIDE_VEC36]]
 ; CHECK-NEXT:    store <32 x i16> [[INTERLEAVED_VEC]], ptr [[TMP2]], align 2
 ; CHECK-NEXT:    [[INDEX_NEXT]] = add nuw i64 [[INDEX]], 8

@@ -71,7 +71,10 @@ define i32 @chained_recurrences(i32 %x, i64 %y, ptr %src.1, i32 %z, ptr %src.2) 
 ; VSCALEFORTUNING2-NEXT:    [[TMP13:%.*]] = and <vscale x 4 x i32> [[TMP12]], splat (i32 1)
 ; VSCALEFORTUNING2-NEXT:    [[TMP14:%.*]] = xor <vscale x 4 x i32> [[TMP13]], splat (i32 1)
 ; VSCALEFORTUNING2-NEXT:    [[TMP15:%.*]] = zext <vscale x 4 x i32> [[TMP14]] to <vscale x 4 x i64>
-; VSCALEFORTUNING2-NEXT:    [[DOTSPLAT:%.*]] = getelementptr i32, ptr [[SRC_2]], <vscale x 4 x i64> [[TMP15]]
+; VSCALEFORTUNING2-NEXT:    [[TMP17:%.*]] = extractelement <vscale x 4 x i64> [[TMP15]], i64 0
+; VSCALEFORTUNING2-NEXT:    [[TMP76:%.*]] = getelementptr i32, ptr [[SRC_2]], i64 [[TMP17]]
+; VSCALEFORTUNING2-NEXT:    [[BROADCAST_SPLATINSERT10:%.*]] = insertelement <vscale x 4 x ptr> poison, ptr [[TMP76]], i64 0
+; VSCALEFORTUNING2-NEXT:    [[DOTSPLAT:%.*]] = shufflevector <vscale x 4 x ptr> [[BROADCAST_SPLATINSERT10]], <vscale x 4 x ptr> poison, <vscale x 4 x i32> zeroinitializer
 ; VSCALEFORTUNING2-NEXT:    [[TMP18:%.*]] = call i32 @llvm.vscale.i32()
 ; VSCALEFORTUNING2-NEXT:    [[TMP19:%.*]] = mul nuw i32 [[TMP18]], 4
 ; VSCALEFORTUNING2-NEXT:    [[TMP20:%.*]] = sub i32 [[TMP19]], 1
@@ -153,13 +156,13 @@ define i32 @chained_recurrences(i32 %x, i64 %y, ptr %src.1, i32 %z, ptr %src.2) 
 ; VSCALEFORTUNING2-NEXT:    br i1 [[CMP_N]], label %[[EXIT:.*]], label %[[SCALAR_PH]]
 ; VSCALEFORTUNING2:       [[SCALAR_PH]]:
 ; VSCALEFORTUNING2-NEXT:    [[SCALAR_RECUR_INIT:%.*]] = phi i32 [ [[TMP24]], %[[MIDDLE_BLOCK]] ], [ 0, %[[ENTRY]] ]
-; VSCALEFORTUNING2-NEXT:    [[SCALAR_RECUR_INIT22:%.*]] = phi i32 [ [[VECTOR_RECUR_EXTRACT]], %[[MIDDLE_BLOCK]] ], [ 0, %[[ENTRY]] ]
+; VSCALEFORTUNING2-NEXT:    [[SCALAR_RECUR_INIT23:%.*]] = phi i32 [ [[VECTOR_RECUR_EXTRACT]], %[[MIDDLE_BLOCK]] ], [ 0, %[[ENTRY]] ]
 ; VSCALEFORTUNING2-NEXT:    [[BC_RESUME_VAL:%.*]] = phi i64 [ [[N_VEC]], %[[MIDDLE_BLOCK]] ], [ 0, %[[ENTRY]] ]
 ; VSCALEFORTUNING2-NEXT:    [[BC_MERGE_RDX:%.*]] = phi i32 [ [[TMP75]], %[[MIDDLE_BLOCK]] ], [ 0, %[[ENTRY]] ]
 ; VSCALEFORTUNING2-NEXT:    br label %[[LOOP:.*]]
 ; VSCALEFORTUNING2:       [[LOOP]]:
-; VSCALEFORTUNING2-NEXT:    [[TMP76:%.*]] = phi i32 [ [[SCALAR_RECUR_INIT]], %[[SCALAR_PH]] ], [ [[TMP57:%.*]], %[[LOOP]] ]
-; VSCALEFORTUNING2-NEXT:    [[TMP55:%.*]] = phi i32 [ [[SCALAR_RECUR_INIT22]], %[[SCALAR_PH]] ], [ [[TMP76]], %[[LOOP]] ]
+; VSCALEFORTUNING2-NEXT:    [[TMP77:%.*]] = phi i32 [ [[SCALAR_RECUR_INIT]], %[[SCALAR_PH]] ], [ [[TMP57:%.*]], %[[LOOP]] ]
+; VSCALEFORTUNING2-NEXT:    [[TMP55:%.*]] = phi i32 [ [[SCALAR_RECUR_INIT23]], %[[SCALAR_PH]] ], [ [[TMP77]], %[[LOOP]] ]
 ; VSCALEFORTUNING2-NEXT:    [[IV:%.*]] = phi i64 [ [[BC_RESUME_VAL]], %[[SCALAR_PH]] ], [ [[IV_NEXT:%.*]], %[[LOOP]] ]
 ; VSCALEFORTUNING2-NEXT:    [[SUM_RED:%.*]] = phi i32 [ [[BC_MERGE_RDX]], %[[SCALAR_PH]] ], [ [[RED_2:%.*]], %[[LOOP]] ]
 ; VSCALEFORTUNING2-NEXT:    [[TMP56:%.*]] = add i64 [[Y]], 1
@@ -214,7 +217,10 @@ define i32 @chained_recurrences(i32 %x, i64 %y, ptr %src.1, i32 %z, ptr %src.2) 
 ; PRED-NEXT:    [[TMP17:%.*]] = and <vscale x 4 x i32> [[TMP16]], splat (i32 1)
 ; PRED-NEXT:    [[TMP18:%.*]] = xor <vscale x 4 x i32> [[TMP17]], splat (i32 1)
 ; PRED-NEXT:    [[TMP19:%.*]] = zext <vscale x 4 x i32> [[TMP18]] to <vscale x 4 x i64>
-; PRED-NEXT:    [[DOTSPLAT:%.*]] = getelementptr i32, ptr [[SRC_2]], <vscale x 4 x i64> [[TMP19]]
+; PRED-NEXT:    [[TMP21:%.*]] = extractelement <vscale x 4 x i64> [[TMP19]], i64 0
+; PRED-NEXT:    [[TMP45:%.*]] = getelementptr i32, ptr [[SRC_2]], i64 [[TMP21]]
+; PRED-NEXT:    [[BROADCAST_SPLATINSERT7:%.*]] = insertelement <vscale x 4 x ptr> poison, ptr [[TMP45]], i64 0
+; PRED-NEXT:    [[DOTSPLAT:%.*]] = shufflevector <vscale x 4 x ptr> [[BROADCAST_SPLATINSERT7]], <vscale x 4 x ptr> poison, <vscale x 4 x i32> zeroinitializer
 ; PRED-NEXT:    [[TMP22:%.*]] = call i32 @llvm.vscale.i32()
 ; PRED-NEXT:    [[TMP23:%.*]] = mul nuw i32 [[TMP22]], 4
 ; PRED-NEXT:    [[TMP24:%.*]] = sub i32 [[TMP23]], 1

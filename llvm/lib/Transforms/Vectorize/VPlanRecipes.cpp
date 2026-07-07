@@ -1110,6 +1110,7 @@ Value *VPInstruction::generate(VPTransformState &State) {
 
 InstructionCost VPRecipeWithIRFlags::getCostForRecipeWithOpcode(
     unsigned Opcode, ElementCount VF, VPCostContext &Ctx) const {
+  VF = VF.multiplyCoefficientBy(getWidenScale());
   Type *ScalarTy = this->getScalarType();
   Type *ResultTy = VF.isVector() ? toVectorTy(ScalarTy, VF) : ScalarTy;
   switch (Opcode) {
@@ -2208,14 +2209,23 @@ void VPWidenCallRecipe::printRecipe(raw_ostream &O, const Twine &Indent,
 }
 #endif
 
+static Value *getScaledVectorOperand(VPTransformState &State, VPValue *Op,
+                                     ElementCount EffVF) {
+  if (vputils::isSingleScalar(Op))
+    return State.Builder.CreateVectorSplat(EffVF,
+                                           State.get(Op, true));
+  return State.get(Op);
+}
+
 CallInst *VPWidenIntrinsicRecipe::createVectorCall(VPTransformState &State) {
   assert(State.VF.isVector() && "not widening");
+  ElementCount EffVF = State.VF.multiplyCoefficientBy(getWidenScale());
 
   SmallVector<Type *, 2> TysForDecl;
   // Add return type if intrinsic is overloaded on it.
   if (isVectorIntrinsicWithOverloadTypeAtArg(VectorIntrinsicID, -1,
                                              State.TTI)) {
-    Type *RetTy = toVectorizedTy(getScalarType(), State.VF);
+    Type *RetTy = toVectorizedTy(getScalarType(), EffVF);
     ArrayRef<Type *> ContainedTys = getContainedTypes(RetTy);
     for (auto [Idx, Ty] : enumerate(ContainedTys)) {
       if (isVectorIntrinsicWithStructReturnOverloadAtField(VectorIntrinsicID,
@@ -2231,6 +2241,8 @@ CallInst *VPWidenIntrinsicRecipe::createVectorCall(VPTransformState &State) {
     if (isVectorIntrinsicWithScalarOpAtArg(VectorIntrinsicID, I.index(),
                                            State.TTI))
       Arg = State.get(I.value(), VPLane(0));
+    else if (getWidenScale() > 1)
+      Arg = getScaledVectorOperand(State, I.value(), EffVF);
     else
       Arg = State.get(I.value(), usesFirstLaneOnly(I.value()));
     if (isVectorIntrinsicWithOverloadTypeAtArg(VectorIntrinsicID, I.index(),
@@ -2311,7 +2323,8 @@ InstructionCost VPWidenIntrinsicRecipe::computeCallCost(
 InstructionCost VPWidenIntrinsicRecipe::computeCost(ElementCount VF,
                                                     VPCostContext &Ctx) const {
   SmallVector<const VPValue *> ArgOps(operands());
-  return computeCallCost(VectorIntrinsicID, ArgOps, *this, VF, Ctx);
+  return computeCallCost(VectorIntrinsicID, ArgOps, *this,
+                         VF.multiplyCoefficientBy(getWidenScale()), Ctx);
 }
 
 StringRef VPWidenIntrinsicRecipe::getIntrinsicName() const {
@@ -2720,6 +2733,11 @@ void VPIRFlags::printFlags(raw_ostream &O) const {
 
 void VPWidenRecipe::execute(VPTransformState &State) {
   auto &Builder = State.Builder;
+  ElementCount EffVF = State.VF.multiplyCoefficientBy(getWidenScale());
+  auto getVecOp = [&](VPValue *Op) -> Value * {
+    return getWidenScale() > 1 ? getScaledVectorOperand(State, Op, EffVF)
+                               : State.get(Op);
+  };
   switch (Opcode) {
   case Instruction::Call:
   case Instruction::UncondBr:
@@ -2749,7 +2767,7 @@ void VPWidenRecipe::execute(VPTransformState &State) {
     // Just widen unops and binops.
     SmallVector<Value *, 2> Ops;
     for (VPValue *VPOp : operands())
-      Ops.push_back(State.get(VPOp));
+      Ops.push_back(getVecOp(VPOp));
 
     Value *V = Builder.CreateNAryOp(Opcode, Ops);
 
@@ -2764,14 +2782,17 @@ void VPWidenRecipe::execute(VPTransformState &State) {
   }
   case Instruction::ExtractValue: {
     assert(getNumOperands() == 2 && "expected single level extractvalue");
-    Value *Op = State.get(getOperand(0));
+    VPValue *OpVPV = getOperand(0);
+    Value *Op = State.get(OpVPV, vputils::isSingleScalar(OpVPV));
     Value *Extract = Builder.CreateExtractValue(
         Op, cast<VPConstantInt>(getOperand(1))->getZExtValue());
+    if (EffVF.isVector() && vputils::isSingleScalar(OpVPV))
+      Extract = Builder.CreateVectorSplat(EffVF, Extract);
     State.set(this, Extract);
     break;
   }
   case Instruction::Freeze: {
-    Value *Op = State.get(getOperand(0));
+    Value *Op = getVecOp(getOperand(0));
     Value *Freeze = Builder.CreateFreeze(Op);
     State.set(this, Freeze);
     break;
@@ -2780,8 +2801,8 @@ void VPWidenRecipe::execute(VPTransformState &State) {
   case Instruction::FCmp: {
     // Widen compares. Generate vector compares.
     bool FCmp = Opcode == Instruction::FCmp;
-    Value *A = State.get(getOperand(0));
-    Value *B = State.get(getOperand(1));
+    Value *A = getVecOp(getOperand(0));
+    Value *B = getVecOp(getOperand(1));
     Value *C = nullptr;
     if (FCmp) {
       C = Builder.CreateFCmp(getPredicate(), A, B);
@@ -2797,9 +2818,11 @@ void VPWidenRecipe::execute(VPTransformState &State) {
   }
   case Instruction::Select: {
     VPValue *CondOp = getOperand(0);
-    Value *Cond = State.get(CondOp, vputils::isSingleScalar(CondOp));
-    Value *Op0 = State.get(getOperand(1));
-    Value *Op1 = State.get(getOperand(2));
+    Value *Cond = vputils::isSingleScalar(CondOp)
+                      ? State.get(CondOp, true)
+                      : getVecOp(CondOp);
+    Value *Op0 = getVecOp(getOperand(1));
+    Value *Op1 = getVecOp(getOperand(2));
     Value *Sel = State.Builder.CreateSelect(Cond, Op0, Op1);
     State.set(this, Sel);
     if (auto *I = dyn_cast<Instruction>(Sel)) {
@@ -2819,7 +2842,8 @@ void VPWidenRecipe::execute(VPTransformState &State) {
 #if !defined(NDEBUG)
   // Verify that VPlan type inference results agree with the type of the
   // generated values.
-  assert(VectorType::get(this->getScalarType(), State.VF) ==
+  assert(VectorType::get(this->getScalarType(),
+                         State.VF.multiplyCoefficientBy(getWidenScale())) ==
              State.get(this)->getType() &&
          "inferred type and type from generated instructions do not match");
 #endif
@@ -2877,9 +2901,11 @@ void VPWidenCastRecipe::execute(VPTransformState &State) {
   auto &Builder = State.Builder;
   /// Vectorize casts.
   assert(State.VF.isVector() && "Not vectorizing?");
-  Type *DestTy = VectorType::get(getScalarType(), State.VF);
+  ElementCount EffVF = State.VF.multiplyCoefficientBy(getWidenScale());
+  Type *DestTy = VectorType::get(getScalarType(), EffVF);
   VPValue *Op = getOperand(0);
-  Value *A = State.get(Op);
+  Value *A = getWidenScale() > 1 ? getScaledVectorOperand(State, Op, EffVF)
+                                 : State.get(Op);
   Value *Cast = Builder.CreateCast(Instruction::CastOps(Opcode), A, DestTy);
   State.set(this, Cast);
   if (auto *CastOp = dyn_cast<Instruction>(Cast)) {
@@ -4077,6 +4103,7 @@ const VPRecipeBase *VPWidenStoreEVLRecipe::getAsRecipe() const { return this; }
 
 InstructionCost VPWidenMemoryRecipe::computeCost(ElementCount VF,
                                                  VPCostContext &Ctx) const {
+  VF = VF.multiplyCoefficientBy(getWidenScale());
   const VPRecipeBase *R = getAsRecipe();
   bool IsLoad = isa<VPWidenLoadRecipe, VPWidenLoadEVLRecipe>(R);
   Type *ScalarTy = IsLoad ? cast<VPSingleDefRecipe>(R)->getScalarType()
@@ -4140,7 +4167,8 @@ InstructionCost VPWidenMemoryRecipe::computeCost(ElementCount VF,
 
 void VPWidenLoadRecipe::execute(VPTransformState &State) {
   Type *ScalarDataTy = getScalarType();
-  auto *DataTy = VectorType::get(ScalarDataTy, State.VF);
+  auto *DataTy = VectorType::get(
+      ScalarDataTy, State.VF.multiplyCoefficientBy(getWidenScale()));
   bool CreateGather = !isConsecutive();
 
   auto &Builder = State.Builder;
@@ -4241,7 +4269,10 @@ void VPWidenStoreRecipe::execute(VPTransformState &State) {
   if (auto *VPMask = getMask())
     Mask = State.get(VPMask);
 
-  Value *StoredVal = State.get(StoredVPValue);
+  ElementCount EffVF = State.VF.multiplyCoefficientBy(getWidenScale());
+  Value *StoredVal = getWidenScale() > 1
+                         ? getScaledVectorOperand(State, StoredVPValue, EffVF)
+                         : State.get(StoredVPValue);
   Value *Addr = State.get(getAddr(), /*IsScalar*/ !CreateScatter);
   Instruction *NewSI = nullptr;
   if (CreateScatter)
