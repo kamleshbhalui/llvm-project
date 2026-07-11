@@ -21,6 +21,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Analysis/ConstantFolding.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/Analysis/VectorUtils.h"
 #include "llvm/CodeGen/ISDOpcodes.h"
 #include "llvm/CodeGen/MachineFrameInfo.h"
 #include "llvm/CodeGen/MachineFunction.h"
@@ -3785,10 +3786,18 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
   }
   case ISD::VECTOR_DEINTERLEAVE: {
     unsigned Factor = Node->getNumOperands();
+    EVT VecVT = Node->getValueType(0);
+    if (Factor == 2 && VecVT.isFixedLengthVector()) {
+      unsigned NumElts = VecVT.getVectorNumElements();
+      for (unsigned I = 0; I != Factor; ++I)
+        Results.push_back(DAG.getVectorShuffle(
+            VecVT, dl, Node->getOperand(0), Node->getOperand(1),
+            createStrideMask(I, Factor, NumElts)));
+      break;
+    }
     if (Factor <= 2 || Factor % 2 != 0)
       break;
     SmallVector<SDValue, 8> Ops(Node->ops());
-    EVT VecVT = Node->getValueType(0);
     SmallVector<EVT> HalfVTs(Factor / 2, VecVT);
     // Deinterleave at Factor/2 so each result contains two factors interleaved:
     // a0b0 c0d0 a1b1 c1d1 -> [a0c0 b0d0] [a1c1 b1d1]
@@ -3810,9 +3819,18 @@ bool SelectionDAGLegalize::ExpandNode(SDNode *Node) {
   }
   case ISD::VECTOR_INTERLEAVE: {
     unsigned Factor = Node->getNumOperands();
+    EVT VecVT = Node->getValueType(0);
+    if (Factor == 2 && VecVT.isFixedLengthVector()) {
+      unsigned NumElts = VecVT.getVectorNumElements();
+      SmallVector<int, 16> Mask = createInterleaveMask(NumElts, Factor);
+      for (unsigned I = 0; I != Factor; ++I)
+        Results.push_back(DAG.getVectorShuffle(
+            VecVT, dl, Node->getOperand(0), Node->getOperand(1),
+            ArrayRef(Mask).slice(I * NumElts, NumElts)));
+      break;
+    }
     if (Factor <= 2 || Factor % 2 != 0)
       break;
-    EVT VecVT = Node->getValueType(0);
     SmallVector<EVT> HalfVTs(Factor / 2, VecVT);
     SmallVector<SDValue, 8> LOps, ROps;
     // Interleave so we have 2 factors per result:
