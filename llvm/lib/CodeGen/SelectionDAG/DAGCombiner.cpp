@@ -547,6 +547,7 @@ namespace {
     SDValue visitBUILD_VECTOR(SDNode *N);
     SDValue visitCONCAT_VECTORS(SDNode *N);
     SDValue visitVECTOR_INTERLEAVE(SDNode *N);
+    SDValue visitVECTOR_DEINTERLEAVE(SDNode *N);
     SDValue visitEXTRACT_SUBVECTOR(SDNode *N);
     SDValue visitVECTOR_SHUFFLE(SDNode *N);
     SDValue visitSCALAR_TO_VECTOR(SDNode *N);
@@ -2102,6 +2103,7 @@ SDValue DAGCombiner::visit(SDNode *N) {
   case ISD::BUILD_VECTOR:       return visitBUILD_VECTOR(N);
   case ISD::CONCAT_VECTORS:     return visitCONCAT_VECTORS(N);
   case ISD::VECTOR_INTERLEAVE:  return visitVECTOR_INTERLEAVE(N);
+  case ISD::VECTOR_DEINTERLEAVE:  return visitVECTOR_DEINTERLEAVE(N);
   case ISD::EXTRACT_SUBVECTOR:  return visitEXTRACT_SUBVECTOR(N);
   case ISD::VECTOR_SHUFFLE:     return visitVECTOR_SHUFFLE(N);
   case ISD::SCALAR_TO_VECTOR:   return visitSCALAR_TO_VECTOR(N);
@@ -27391,19 +27393,107 @@ SDValue DAGCombiner::visitCONCAT_VECTORS(SDNode *N) {
   return SDValue();
 }
 
+// Returns the scalar element at position \p Idx of \p Op if it can be read
+// cheaply, i.e. when \p Op is a BUILD_VECTOR or a SPLAT_VECTOR. Returns an
+// empty SDValue otherwise.
+static SDValue getKnownVectorElt(SDValue Op, unsigned Idx) {
+  if (Op.getOpcode() == ISD::BUILD_VECTOR)
+    return Op.getOperand(Idx);
+  if (Op.getOpcode() == ISD::SPLAT_VECTOR)
+    return Op.getOperand(0);
+  return SDValue();
+}
+
+// An operand of a VECTOR_INTERLEAVE/VECTOR_DEINTERLEAVE is worth folding away
+// when it is a splat or a constant BUILD_VECTOR. Folding general BUILD_VECTORs
+// is avoided so we don't interfere with interleave+store (stN) fusion of
+// arbitrary data.
+static bool canFoldInterleaveOperand(SDValue Op) {
+  if (Op.getOpcode() == ISD::SPLAT_VECTOR)
+    return true;
+  auto *BV = dyn_cast<BuildVectorSDNode>(Op.getNode());
+  return BV && (BV->isConstant() || BV->getSplatValue());
+}
+
+// Fold a VECTOR_INTERLEAVE or VECTOR_DEINTERLEAVE with foldable (splat or
+// constant) operands by reassembling the known elements directly into
+// BUILD_VECTOR results. \p Interleave selects the direction. This recovers the
+// constant folding and splat handling that the equivalent VECTOR_SHUFFLE would
+// have received.
+static bool foldInterleaveOfKnownVectors(SDNode *N, bool Interleave,
+                                         SelectionDAG &DAG,
+                                         SmallVectorImpl<SDValue> &Results) {
+  EVT VT = N->getValueType(0);
+  if (VT.isScalableVector())
+    return false;
+
+  unsigned Factor = N->getNumOperands();
+  unsigned NumElts = VT.getVectorNumElements();
+  if (!all_of(N->op_values(), canFoldInterleaveOperand))
+    return false;
+
+  SDLoc DL(N);
+  // A result reassembles elements drawn from several source operands. Those
+  // operands can independently store their scalars in the element type or, for
+  // integers, in a wider legal type. BUILD_VECTOR requires all operands to have
+  // the same type, so track the first element's type and bail if they disagree.
+  EVT ScalarTy;
+  for (unsigned R = 0; R < Factor; ++R) {
+    SmallVector<SDValue, 16> Elts;
+    for (unsigned J = 0; J < NumElts; ++J) {
+      unsigned Op, Idx;
+      if (Interleave) {
+        // The full interleaved output is [op0[0], op1[0], ..., op0[1], ...].
+        // Result R holds output positions [R*NumElts, (R+1)*NumElts).
+        unsigned P = R * NumElts + J;
+        Op = P % Factor;
+        Idx = P / Factor;
+      } else {
+        // The full input is the concatenation of the operands. Result R holds
+        // every Factor'th input element starting at R.
+        unsigned K = J * Factor + R;
+        Op = K / NumElts;
+        Idx = K % NumElts;
+      }
+      SDValue Elt = getKnownVectorElt(N->getOperand(Op), Idx);
+      if (!Elt)
+        return false;
+      if (ScalarTy == EVT())
+        ScalarTy = Elt.getValueType();
+      else if (Elt.getValueType() != ScalarTy)
+        return false;
+      Elts.push_back(Elt);
+    }
+    Results.push_back(DAG.getBuildVector(VT, DL, Elts));
+  }
+  return true;
+}
+
 SDValue DAGCombiner::visitVECTOR_INTERLEAVE(SDNode *N) {
-  // Check to see if all operands are identical.
-  if (!llvm::all_equal(N->op_values()))
-    return SDValue();
-
-  // Check to see if the identical operand is a splat.
-  if (!DAG.isSplatValue(N->getOperand(0)))
-    return SDValue();
-
   // interleave splat(X), splat(X).... --> splat(X), splat(X)....
-  SmallVector<SDValue, 4> Ops;
-  Ops.append(N->op_values().begin(), N->op_values().end());
-  return CombineTo(N, &Ops);
+  if (llvm::all_equal(N->op_values()) && DAG.isSplatValue(N->getOperand(0))) {
+    SmallVector<SDValue, 4> Ops;
+    Ops.append(N->op_values().begin(), N->op_values().end());
+    return CombineTo(N, &Ops);
+  }
+
+  // Reassemble interleaves of splat/constant operands into BUILD_VECTORs so the
+  // usual constant folding and lowering can apply.
+  SmallVector<SDValue, 4> Results;
+  if (foldInterleaveOfKnownVectors(N, /*Interleave=*/true, DAG, Results))
+    return CombineTo(N, &Results);
+
+  return SDValue();
+}
+
+SDValue DAGCombiner::visitVECTOR_DEINTERLEAVE(SDNode *N) {
+  // Reassemble deinterleaves of splat/constant operands into BUILD_VECTORs so
+  // the usual constant folding and lowering can apply.
+  SmallVector<SDValue, 4> Results;
+  if (foldInterleaveOfKnownVectors(N, /*Interleave=*/false, DAG, Results))
+    return CombineTo(N, &Results);
+
+  return SDValue();
 }
 
 // Helper that peeks through INSERT_SUBVECTOR/CONCAT_VECTORS to find
