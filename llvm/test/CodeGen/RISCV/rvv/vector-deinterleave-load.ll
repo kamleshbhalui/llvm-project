@@ -638,7 +638,10 @@ define { <8 x float>, <8 x float> } @deinterleave_unrelated(<16 x float> %arg) {
 ; CHECK-NEXT:    li a0, 32
 ; CHECK-NEXT:    vsetivli zero, 16, e32, m4, ta, ma
 ; CHECK-NEXT:    vfabs.v v12, v8
-; CHECK-NEXT:    vsetivli zero, 8, e32, m2, ta, ma
+; CHECK-NEXT:    vsetivli zero, 8, e32, m4, ta, ma
+; CHECK-NEXT:    vslidedown.vi v8, v12, 8
+; CHECK-NEXT:    vmv2r.v v14, v8
+; CHECK-NEXT:    vsetvli a1, zero, e32, m2, ta, ma
 ; CHECK-NEXT:    vnsrl.wx v10, v12, a0
 ; CHECK-NEXT:    vnsrl.wi v8, v12, 0
 ; CHECK-NEXT:    ret
