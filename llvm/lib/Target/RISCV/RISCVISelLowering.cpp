@@ -1963,6 +1963,7 @@ RISCVTargetLowering::RISCVTargetLowering(const TargetMachine &TM,
                          ISD::SPLAT_VECTOR,
                          ISD::BUILD_VECTOR,
                          ISD::CONCAT_VECTORS,
+                         ISD::VECTOR_DEINTERLEAVE,
                          ISD::VP_STORE,
                          ISD::EXPERIMENTAL_VP_REVERSE,
                          ISD::SDIV,
@@ -20912,7 +20913,27 @@ static SDValue performCONCAT_VECTORSCombine(SDNode *N, SelectionDAG &DAG,
   SDLoc DL(N);
   EVT VT = N->getValueType(0);
 
-  // Only perform this combine on legal MVTs.
+  // The fixed-length interleave intrinsic is represented as a concat of all
+  // results from a VECTOR_INTERLEAVE. Re-form the full-width shuffle used
+  // before factor-2 interleaves were represented by the generic node. Doing
+  // this before legalization lets RVV lower the complete vector at once
+  // instead of converting each result to a scalable container separately.
+  if (VT.isFixedLengthVector() && N->getNumOperands() == 2) {
+    SDValue Lo = N->getOperand(0);
+    SDValue Hi = N->getOperand(1);
+    if (Lo.getOpcode() == ISD::VECTOR_INTERLEAVE &&
+        Lo.getNode() == Hi.getNode() && Lo.getResNo() == 0 &&
+        Hi.getResNo() == 1 && Lo->getNumOperands() == 2) {
+      EVT OpVT = Lo.getOperand(0).getValueType();
+      unsigned NumElts = OpVT.getVectorNumElements();
+      SDValue Concat = DAG.getNode(ISD::CONCAT_VECTORS, DL, VT,
+                                   Lo.getOperand(0), Lo.getOperand(1));
+      return DAG.getVectorShuffle(VT, DL, Concat, DAG.getUNDEF(VT),
+                                  createInterleaveMask(NumElts, 2));
+    }
+  }
+
+  // Only perform the remaining combines on legal MVTs.
   if (!TLI.isTypeLegal(VT))
     return SDValue();
 
@@ -22905,6 +22926,31 @@ SDValue RISCVTargetLowering::PerformDAGCombine(SDNode *N,
     if (SDValue V = performCONCAT_VECTORSCombine(N, DAG, Subtarget, *this))
       return V;
     break;
+  case ISD::VECTOR_DEINTERLEAVE: {
+    EVT VT = N->getValueType(0);
+    if (!DCI.isBeforeLegalize() || !VT.isFixedLengthVector() ||
+        N->getNumOperands() != 2)
+      break;
+
+    // Keep an ordered VECTOR_INTERLEAVE producer intact. Lowering the pair of
+    // generic nodes together is cheaper than converting the intermediate
+    // results to shuffles and legalizing each half independently.
+    SDValue Lo = N->getOperand(0);
+    SDValue Hi = N->getOperand(1);
+    if (Lo.getOpcode() == ISD::VECTOR_INTERLEAVE &&
+        Lo.getNode() == Hi.getNode() && Lo.getResNo() == 0 &&
+        Hi.getResNo() == 1)
+      break;
+
+    unsigned NumElts = VT.getVectorNumElements();
+    SDValue Even = DAG.getVectorShuffle(
+        VT, DL, N->getOperand(0), N->getOperand(1),
+        createStrideMask(/*Start=*/0, /*Stride=*/2, NumElts));
+    SDValue Odd = DAG.getVectorShuffle(
+        VT, DL, N->getOperand(0), N->getOperand(1),
+        createStrideMask(/*Start=*/1, /*Stride=*/2, NumElts));
+    return DCI.CombineTo(N, Even, Odd);
+  }
   case ISD::VECTOR_SHUFFLE:
     if (SDValue V = performVECTOR_SHUFFLECombine(N, DAG, Subtarget, *this))
       return V;
