@@ -30461,10 +30461,11 @@ static SDValue performVectorDeinterleaveCombine(
   unsigned SubVecBits = SubVecTy.getSizeInBits().getKnownMinValue();
   if (!TLI.isTypeLegal(SubVecTy))
     return SDValue();
+  bool IsFixedLengthSVE = SubVecTy.isFixedLengthVector() && SubVecBits > 128;
   if (IsScalable) {
     if (SubVecBits != 128)
       return SDValue();
-  } else if (SubVecBits != 64 && SubVecBits != 128) {
+  } else if (!IsFixedLengthSVE && SubVecBits != 64 && SubVecBits != 128) {
     return SDValue();
   }
 
@@ -30484,16 +30485,22 @@ static SDValue performVectorDeinterleaveCombine(
   SDValue WideVec = Op0->getOperand(0);
   SDLoc DL(N);
 
-  SmallVector<EVT, 5> ResVTs(NumParts, SubVecTy);
+  EVT LoadVT =
+      IsFixedLengthSVE ? getContainerForFixedLengthVector(DAG, SubVecTy)
+                       : SubVecTy;
+  SmallVector<EVT, 5> ResVTs(NumParts, LoadVT);
   ResVTs.push_back(MVT::Other);
   SDVTList ResVTList = DAG.getVTList(ResVTs);
 
   SDValue Res;
-  if (IsScalable) {
+  if (IsScalable || IsFixedLengthSVE) {
     if (NumParts == 3)
       return SDValue();
     SDValue Chain, BasePtr, Pred;
     if (auto *MaskedLoad = dyn_cast<MaskedLoadSDNode>(WideVec)) {
+      if (IsFixedLengthSVE)
+        return SDValue();
+
       // Bail out if the masked load has an unexpected number of uses, since we
       // want to avoid a situation where we have both deinterleaving loads and
       // normal loads in the same block. Also, discard masked loads that are
@@ -30519,8 +30526,13 @@ static SDValue performVectorDeinterleaveCombine(
           !ISD::isNormalLoad(Load) || !Load->getOffset().isUndef())
         return SDValue();
 
-      EVT PredVT = SubVecTy.changeVectorElementType(*DAG.getContext(), MVT::i1);
-      Pred = DAG.getConstant(1, DL, PredVT);
+      if (IsFixedLengthSVE)
+        Pred = getPredicateForVector(DAG, DL, SubVecTy);
+      else {
+        EVT PredVT =
+            SubVecTy.changeVectorElementType(*DAG.getContext(), MVT::i1);
+        Pred = DAG.getConstant(1, DL, PredVT);
+      }
       Chain = Load->getChain();
       BasePtr = Load->getBasePtr();
     }
@@ -30550,8 +30562,11 @@ static SDValue performVectorDeinterleaveCombine(
 
   // We can now generate a structured load!
   SmallVector<SDValue, 4> ResOps(NumParts);
-  for (unsigned Idx = 0; Idx < NumParts; Idx++)
+  for (unsigned Idx = 0; Idx < NumParts; Idx++) {
     ResOps[Idx] = SDValue(Res.getNode(), Idx);
+    if (IsFixedLengthSVE)
+      ResOps[Idx] = convertFromScalableVector(DAG, SubVecTy, ResOps[Idx]);
+  }
 
   // Replace uses of the original chain result with the new chain result.
   DAG.ReplaceAllUsesOfValueWith(WideVec.getValue(1),
