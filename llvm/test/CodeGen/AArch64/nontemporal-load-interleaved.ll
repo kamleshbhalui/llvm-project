@@ -27,6 +27,31 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load2_v2i32_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.2s, v1.2s }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v2i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.2s, v1.2s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2s }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <4 x i32>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <2 x i32>, <2 x i32> } @llvm.vector.deinterleave2.v4i32(<4 x i32> %loaded)
+  %v0 = extractvalue { <2 x i32>, <2 x i32> } %deinterleave, 0
+  %v1 = extractvalue { <2 x i32>, <2 x i32> } %deinterleave, 1
+  store <2 x i32> %v0, ptr %out0
+  store <2 x i32> %v1, ptr %out1
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load2_v4i16(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -49,6 +74,31 @@ entry:
   store <4 x i16> %v1, ptr %out1
   ret void
 }
+
+define void @test_ldnp_interleaved_load2_v4i16_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.4h, v1.4h }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v4i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.4h, v1.4h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4h }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x i16>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <4 x i16>, <4 x i16> } @llvm.vector.deinterleave2.v8i16(<8 x i16> %loaded)
+  %v0 = extractvalue { <4 x i16>, <4 x i16> } %deinterleave, 0
+  %v1 = extractvalue { <4 x i16>, <4 x i16> } %deinterleave, 1
+  store <4 x i16> %v0, ptr %out0
+  store <4 x i16> %v1, ptr %out1
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load2_v8i8(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v8i8:
@@ -73,6 +123,31 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load2_v8i8_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v8i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.8b, v1.8b }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v8i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.8b, v1.8b }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8b }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8b }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x i8>, ptr %ptr, align 1, !nontemporal !0
+  %deinterleave = call { <8 x i8>, <8 x i8> } @llvm.vector.deinterleave2.v16i8(<16 x i8> %loaded)
+  %v0 = extractvalue { <8 x i8>, <8 x i8> } %deinterleave, 0
+  %v1 = extractvalue { <8 x i8>, <8 x i8> } %deinterleave, 1
+  store <8 x i8> %v0, ptr %out0
+  store <8 x i8> %v1, ptr %out1
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load2_v2f32(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2f32:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -95,6 +170,31 @@ entry:
   store <2 x float> %v1, ptr %out1
   ret void
 }
+
+define void @test_ldnp_interleaved_load2_v2f32_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.2s, v1.2s }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v2f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.2s, v1.2s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2s }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <4 x float>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <2 x float>, <2 x float> } @llvm.vector.deinterleave2.v4f32(<4 x float> %loaded)
+  %v0 = extractvalue { <2 x float>, <2 x float> } %deinterleave, 0
+  %v1 = extractvalue { <2 x float>, <2 x float> } %deinterleave, 1
+  store <2 x float> %v0, ptr %out0
+  store <2 x float> %v1, ptr %out1
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load2_v4f16(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4f16:
@@ -119,6 +219,31 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load2_v4f16_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.4h, v1.4h }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v4f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.4h, v1.4h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4h }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x half>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <4 x half>, <4 x half> } @llvm.vector.deinterleave2.v8f16(<8 x half> %loaded)
+  %v0 = extractvalue { <4 x half>, <4 x half> } %deinterleave, 0
+  %v1 = extractvalue { <4 x half>, <4 x half> } %deinterleave, 1
+  store <4 x half> %v0, ptr %out0
+  store <4 x half> %v1, ptr %out1
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load2_v2i64(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2i64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -141,6 +266,31 @@ entry:
   store <2 x i64> %v1, ptr %out1
   ret void
 }
+
+define void @test_ldnp_interleaved_load2_v2i64_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2i64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.2d, v1.2d }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v2i64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.2d, v1.2d }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2d }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2d }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <4 x i64>, ptr %ptr, align 8, !nontemporal !0
+  %deinterleave = call { <2 x i64>, <2 x i64> } @llvm.vector.deinterleave2.v4i64(<4 x i64> %loaded)
+  %v0 = extractvalue { <2 x i64>, <2 x i64> } %deinterleave, 0
+  %v1 = extractvalue { <2 x i64>, <2 x i64> } %deinterleave, 1
+  store <2 x i64> %v0, ptr %out0
+  store <2 x i64> %v1, ptr %out1
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load2_v4i32(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4i32:
@@ -165,6 +315,31 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load2_v4i32_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.4s, v1.4s }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v4i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.4s, v1.4s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4s }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x i32>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <4 x i32>, <4 x i32> } @llvm.vector.deinterleave2.v8i32(<8 x i32> %loaded)
+  %v0 = extractvalue { <4 x i32>, <4 x i32> } %deinterleave, 0
+  %v1 = extractvalue { <4 x i32>, <4 x i32> } %deinterleave, 1
+  store <4 x i32> %v0, ptr %out0
+  store <4 x i32> %v1, ptr %out1
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load2_v8i16(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v8i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -187,6 +362,31 @@ entry:
   store <8 x i16> %v1, ptr %out1
   ret void
 }
+
+define void @test_ldnp_interleaved_load2_v8i16_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v8i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.8h, v1.8h }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v8i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.8h, v1.8h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8h }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x i16>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <8 x i16>, <8 x i16> } @llvm.vector.deinterleave2.v16i16(<16 x i16> %loaded)
+  %v0 = extractvalue { <8 x i16>, <8 x i16> } %deinterleave, 0
+  %v1 = extractvalue { <8 x i16>, <8 x i16> } %deinterleave, 1
+  store <8 x i16> %v0, ptr %out0
+  store <8 x i16> %v1, ptr %out1
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load2_v16i8(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v16i8:
@@ -215,6 +415,31 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load2_v16i8_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v16i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.16b, v1.16b }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v16i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.16b, v1.16b }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.16b }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.16b }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <32 x i8>, ptr %ptr, align 1, !nontemporal !0
+  %deinterleave = call { <16 x i8>, <16 x i8> } @llvm.vector.deinterleave2.v32i8(<32 x i8> %loaded)
+  %v0 = extractvalue { <16 x i8>, <16 x i8> } %deinterleave, 0
+  %v1 = extractvalue { <16 x i8>, <16 x i8> } %deinterleave, 1
+  store <16 x i8> %v0, ptr %out0
+  store <16 x i8> %v1, ptr %out1
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load2_v2f64(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2f64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -237,6 +462,31 @@ entry:
   store <2 x double> %v1, ptr %out1
   ret void
 }
+
+define void @test_ldnp_interleaved_load2_v2f64_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v2f64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.2d, v1.2d }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v2f64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.2d, v1.2d }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2d }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2d }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <4 x double>, ptr %ptr, align 8, !nontemporal !0
+  %deinterleave = call { <2 x double>, <2 x double> } @llvm.vector.deinterleave2.v4f64(<4 x double> %loaded)
+  %v0 = extractvalue { <2 x double>, <2 x double> } %deinterleave, 0
+  %v1 = extractvalue { <2 x double>, <2 x double> } %deinterleave, 1
+  store <2 x double> %v0, ptr %out0
+  store <2 x double> %v1, ptr %out1
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load2_v4f32(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4f32:
@@ -261,6 +511,31 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load2_v4f32_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v4f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.4s, v1.4s }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v4f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.4s, v1.4s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4s }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x float>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <4 x float>, <4 x float> } @llvm.vector.deinterleave2.v8f32(<8 x float> %loaded)
+  %v0 = extractvalue { <4 x float>, <4 x float> } %deinterleave, 0
+  %v1 = extractvalue { <4 x float>, <4 x float> } %deinterleave, 1
+  store <4 x float> %v0, ptr %out0
+  store <4 x float> %v1, ptr %out1
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load2_v8f16(ptr %ptr, ptr %out0, ptr %out1) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v8f16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -283,6 +558,31 @@ entry:
   store <8 x half> %v1, ptr %out1
   ret void
 }
+
+define void @test_ldnp_interleaved_load2_v8f16_intrinsic(ptr %ptr, ptr %out0, ptr %out1) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load2_v8f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld2 { v0.8h, v1.8h }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load2_v8f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld2 { v0.8h, v1.8h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8h }, [x2]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x half>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <8 x half>, <8 x half> } @llvm.vector.deinterleave2.v16f16(<16 x half> %loaded)
+  %v0 = extractvalue { <8 x half>, <8 x half> } %deinterleave, 0
+  %v1 = extractvalue { <8 x half>, <8 x half> } %deinterleave, 1
+  store <8 x half> %v0, ptr %out0
+  store <8 x half> %v1, ptr %out1
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load3_v2i32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2i32:
@@ -311,6 +611,35 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load3_v2i32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.2s, v1.2s, v2.2s }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v2i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.2s, v1.2s, v2.2s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2s }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <6 x i32>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <2 x i32>, <2 x i32>, <2 x i32> } @llvm.vector.deinterleave3.v6i32(<6 x i32> %loaded)
+  %v0 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 0
+  %v1 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 1
+  %v2 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 2
+  store <2 x i32> %v0, ptr %out0
+  store <2 x i32> %v1, ptr %out1
+  store <2 x i32> %v2, ptr %out2
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load3_v4i16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -337,6 +666,35 @@ entry:
   store <4 x i16> %v2, ptr %out2
   ret void
 }
+
+define void @test_ldnp_interleaved_load3_v4i16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.4h, v1.4h, v2.4h }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v4i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.4h, v1.4h, v2.4h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4h }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <12 x i16>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave3.v12i16(<12 x i16> %loaded)
+  %v0 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 0
+  %v1 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 1
+  %v2 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 2
+  store <4 x i16> %v0, ptr %out0
+  store <4 x i16> %v1, ptr %out1
+  store <4 x i16> %v2, ptr %out2
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load3_v8i8(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v8i8:
@@ -365,6 +723,35 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load3_v8i8_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v8i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.8b, v1.8b, v2.8b }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v8i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.8b, v1.8b, v2.8b }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8b }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8b }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.8b }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <24 x i8>, ptr %ptr, align 1, !nontemporal !0
+  %deinterleave = call { <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave3.v24i8(<24 x i8> %loaded)
+  %v0 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 0
+  %v1 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 1
+  %v2 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 2
+  store <8 x i8> %v0, ptr %out0
+  store <8 x i8> %v1, ptr %out1
+  store <8 x i8> %v2, ptr %out2
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load3_v2f32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2f32:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -391,6 +778,35 @@ entry:
   store <2 x float> %v2, ptr %out2
   ret void
 }
+
+define void @test_ldnp_interleaved_load3_v2f32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.2s, v1.2s, v2.2s }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v2f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.2s, v1.2s, v2.2s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2s }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <6 x float>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <2 x float>, <2 x float>, <2 x float> } @llvm.vector.deinterleave3.v6f32(<6 x float> %loaded)
+  %v0 = extractvalue { <2 x float>, <2 x float>, <2 x float> } %deinterleave, 0
+  %v1 = extractvalue { <2 x float>, <2 x float>, <2 x float> } %deinterleave, 1
+  %v2 = extractvalue { <2 x float>, <2 x float>, <2 x float> } %deinterleave, 2
+  store <2 x float> %v0, ptr %out0
+  store <2 x float> %v1, ptr %out1
+  store <2 x float> %v2, ptr %out2
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load3_v4f16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4f16:
@@ -419,6 +835,35 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load3_v4f16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.4h, v1.4h, v2.4h }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v4f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.4h, v1.4h, v2.4h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4h }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <12 x half>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <4 x half>, <4 x half>, <4 x half> } @llvm.vector.deinterleave3.v12f16(<12 x half> %loaded)
+  %v0 = extractvalue { <4 x half>, <4 x half>, <4 x half> } %deinterleave, 0
+  %v1 = extractvalue { <4 x half>, <4 x half>, <4 x half> } %deinterleave, 1
+  %v2 = extractvalue { <4 x half>, <4 x half>, <4 x half> } %deinterleave, 2
+  store <4 x half> %v0, ptr %out0
+  store <4 x half> %v1, ptr %out1
+  store <4 x half> %v2, ptr %out2
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load3_v2i64(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2i64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -445,6 +890,35 @@ entry:
   store <2 x i64> %v2, ptr %out2
   ret void
 }
+
+define void @test_ldnp_interleaved_load3_v2i64_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2i64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.2d, v1.2d, v2.2d }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v2i64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.2d, v1.2d, v2.2d }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2d }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2d }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2d }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <6 x i64>, ptr %ptr, align 8, !nontemporal !0
+  %deinterleave = call { <2 x i64>, <2 x i64>, <2 x i64> } @llvm.vector.deinterleave3.v6i64(<6 x i64> %loaded)
+  %v0 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 0
+  %v1 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 1
+  %v2 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 2
+  store <2 x i64> %v0, ptr %out0
+  store <2 x i64> %v1, ptr %out1
+  store <2 x i64> %v2, ptr %out2
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load3_v4i32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4i32:
@@ -473,6 +947,35 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load3_v4i32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v4i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4s }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <12 x i32>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <4 x i32>, <4 x i32>, <4 x i32> } @llvm.vector.deinterleave3.v12i32(<12 x i32> %loaded)
+  %v0 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 0
+  %v1 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 1
+  %v2 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 2
+  store <4 x i32> %v0, ptr %out0
+  store <4 x i32> %v1, ptr %out1
+  store <4 x i32> %v2, ptr %out2
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load3_v8i16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v8i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -499,6 +1002,35 @@ entry:
   store <8 x i16> %v2, ptr %out2
   ret void
 }
+
+define void @test_ldnp_interleaved_load3_v8i16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v8i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.8h, v1.8h, v2.8h }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v8i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.8h, v1.8h, v2.8h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.8h }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <24 x i16>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <8 x i16>, <8 x i16>, <8 x i16> } @llvm.vector.deinterleave3.v24i16(<24 x i16> %loaded)
+  %v0 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 0
+  %v1 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 1
+  %v2 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 2
+  store <8 x i16> %v0, ptr %out0
+  store <8 x i16> %v1, ptr %out1
+  store <8 x i16> %v2, ptr %out2
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load3_v16i8(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v16i8:
@@ -533,6 +1065,35 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load3_v16i8_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v16i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.16b, v1.16b, v2.16b }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v16i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.16b, v1.16b, v2.16b }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.16b }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.16b }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.16b }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <48 x i8>, ptr %ptr, align 1, !nontemporal !0
+  %deinterleave = call { <16 x i8>, <16 x i8>, <16 x i8> } @llvm.vector.deinterleave3.v48i8(<48 x i8> %loaded)
+  %v0 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 0
+  %v1 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 1
+  %v2 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 2
+  store <16 x i8> %v0, ptr %out0
+  store <16 x i8> %v1, ptr %out1
+  store <16 x i8> %v2, ptr %out2
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load3_v2f64(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2f64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -559,6 +1120,35 @@ entry:
   store <2 x double> %v2, ptr %out2
   ret void
 }
+
+define void @test_ldnp_interleaved_load3_v2f64_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v2f64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.2d, v1.2d, v2.2d }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v2f64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.2d, v1.2d, v2.2d }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2d }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2d }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2d }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <6 x double>, ptr %ptr, align 8, !nontemporal !0
+  %deinterleave = call { <2 x double>, <2 x double>, <2 x double> } @llvm.vector.deinterleave3.v6f64(<6 x double> %loaded)
+  %v0 = extractvalue { <2 x double>, <2 x double>, <2 x double> } %deinterleave, 0
+  %v1 = extractvalue { <2 x double>, <2 x double>, <2 x double> } %deinterleave, 1
+  %v2 = extractvalue { <2 x double>, <2 x double>, <2 x double> } %deinterleave, 2
+  store <2 x double> %v0, ptr %out0
+  store <2 x double> %v1, ptr %out1
+  store <2 x double> %v2, ptr %out2
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load3_v4f32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4f32:
@@ -587,6 +1177,35 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load3_v4f32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v4f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v4f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4s }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <12 x float>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <4 x float>, <4 x float>, <4 x float> } @llvm.vector.deinterleave3.v12f32(<12 x float> %loaded)
+  %v0 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %deinterleave, 0
+  %v1 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %deinterleave, 1
+  %v2 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %deinterleave, 2
+  store <4 x float> %v0, ptr %out0
+  store <4 x float> %v1, ptr %out1
+  store <4 x float> %v2, ptr %out2
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load3_v8f16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v8f16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -613,6 +1232,35 @@ entry:
   store <8 x half> %v2, ptr %out2
   ret void
 }
+
+define void @test_ldnp_interleaved_load3_v8f16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load3_v8f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld3 { v0.8h, v1.8h, v2.8h }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load3_v8f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld3 { v0.8h, v1.8h, v2.8h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.8h }, [x3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <24 x half>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <8 x half>, <8 x half>, <8 x half> } @llvm.vector.deinterleave3.v24f16(<24 x half> %loaded)
+  %v0 = extractvalue { <8 x half>, <8 x half>, <8 x half> } %deinterleave, 0
+  %v1 = extractvalue { <8 x half>, <8 x half>, <8 x half> } %deinterleave, 1
+  %v2 = extractvalue { <8 x half>, <8 x half>, <8 x half> } %deinterleave, 2
+  store <8 x half> %v0, ptr %out0
+  store <8 x half> %v1, ptr %out1
+  store <8 x half> %v2, ptr %out2
+  ret void
+}
+
 
 ; Test conservative lowering of a ld4 matching patterns
 
@@ -647,6 +1295,39 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load4_v2i32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.2s, v1.2s, v2.2s, v3.2s }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    str d3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v2i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.2s, v1.2s, v2.2s, v3.2s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2s }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.2s }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x i32>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } @llvm.vector.deinterleave4.v8i32(<8 x i32> %loaded)
+  %v0 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 0
+  %v1 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 1
+  %v2 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 2
+  %v3 = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleave, 3
+  store <2 x i32> %v0, ptr %out0
+  store <2 x i32> %v1, ptr %out1
+  store <2 x i32> %v2, ptr %out2
+  store <2 x i32> %v3, ptr %out3
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load4_v4i16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -677,6 +1358,39 @@ entry:
   store <4 x i16> %v3, ptr %out3
   ret void
 }
+
+define void @test_ldnp_interleaved_load4_v4i16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.4h, v1.4h, v2.4h, v3.4h }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    str d3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v4i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.4h, v1.4h, v2.4h, v3.4h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4h }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.4h }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x i16>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %loaded)
+  %v0 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 0
+  %v1 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 1
+  %v2 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 2
+  %v3 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleave, 3
+  store <4 x i16> %v0, ptr %out0
+  store <4 x i16> %v1, ptr %out1
+  store <4 x i16> %v2, ptr %out2
+  store <4 x i16> %v3, ptr %out3
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load4_v8i8(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v8i8:
@@ -709,6 +1423,39 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load4_v8i8_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v8i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.8b, v1.8b, v2.8b, v3.8b }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    str d3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v8i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.8b, v1.8b, v2.8b, v3.8b }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8b }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8b }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.8b }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.8b }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <32 x i8>, ptr %ptr, align 1, !nontemporal !0
+  %deinterleave = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %loaded)
+  %v0 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 0
+  %v1 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 1
+  %v2 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 2
+  %v3 = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleave, 3
+  store <8 x i8> %v0, ptr %out0
+  store <8 x i8> %v1, ptr %out1
+  store <8 x i8> %v2, ptr %out2
+  store <8 x i8> %v3, ptr %out3
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load4_v2f32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2f32:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -739,6 +1486,39 @@ entry:
   store <2 x float> %v3, ptr %out3
   ret void
 }
+
+define void @test_ldnp_interleaved_load4_v2f32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.2s, v1.2s, v2.2s, v3.2s }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    str d3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v2f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.2s, v1.2s, v2.2s, v3.2s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2s }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.2s }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x float>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <2 x float>, <2 x float>, <2 x float>, <2 x float> } @llvm.vector.deinterleave4.v8f32(<8 x float> %loaded)
+  %v0 = extractvalue { <2 x float>, <2 x float>, <2 x float>, <2 x float> } %deinterleave, 0
+  %v1 = extractvalue { <2 x float>, <2 x float>, <2 x float>, <2 x float> } %deinterleave, 1
+  %v2 = extractvalue { <2 x float>, <2 x float>, <2 x float>, <2 x float> } %deinterleave, 2
+  %v3 = extractvalue { <2 x float>, <2 x float>, <2 x float>, <2 x float> } %deinterleave, 3
+  store <2 x float> %v0, ptr %out0
+  store <2 x float> %v1, ptr %out1
+  store <2 x float> %v2, ptr %out2
+  store <2 x float> %v3, ptr %out3
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load4_v4f16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4f16:
@@ -771,6 +1551,39 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load4_v4f16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.4h, v1.4h, v2.4h, v3.4h }, [x0]
+; CHECK-LE-NEXT:    str d0, [x1]
+; CHECK-LE-NEXT:    str d1, [x2]
+; CHECK-LE-NEXT:    str d2, [x3]
+; CHECK-LE-NEXT:    str d3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v4f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.4h, v1.4h, v2.4h, v3.4h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4h }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.4h }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x half>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <4 x half>, <4 x half>, <4 x half>, <4 x half> } @llvm.vector.deinterleave4.v16f16(<16 x half> %loaded)
+  %v0 = extractvalue { <4 x half>, <4 x half>, <4 x half>, <4 x half> } %deinterleave, 0
+  %v1 = extractvalue { <4 x half>, <4 x half>, <4 x half>, <4 x half> } %deinterleave, 1
+  %v2 = extractvalue { <4 x half>, <4 x half>, <4 x half>, <4 x half> } %deinterleave, 2
+  %v3 = extractvalue { <4 x half>, <4 x half>, <4 x half>, <4 x half> } %deinterleave, 3
+  store <4 x half> %v0, ptr %out0
+  store <4 x half> %v1, ptr %out1
+  store <4 x half> %v2, ptr %out2
+  store <4 x half> %v3, ptr %out3
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load4_v2i64(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2i64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -801,6 +1614,39 @@ entry:
   store <2 x i64> %v3, ptr %out3
   ret void
 }
+
+define void @test_ldnp_interleaved_load4_v2i64_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2i64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.2d, v1.2d, v2.2d, v3.2d }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v2i64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.2d, v1.2d, v2.2d, v3.2d }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2d }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2d }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2d }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.2d }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x i64>, ptr %ptr, align 8, !nontemporal !0
+  %deinterleave = call { <2 x i64>, <2 x i64>, <2 x i64>, <2 x i64> } @llvm.vector.deinterleave4.v8i64(<8 x i64> %loaded)
+  %v0 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 0
+  %v1 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 1
+  %v2 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 2
+  %v3 = extractvalue { <2 x i64>, <2 x i64>, <2 x i64>, <2 x i64> } %deinterleave, 3
+  store <2 x i64> %v0, ptr %out0
+  store <2 x i64> %v1, ptr %out1
+  store <2 x i64> %v2, ptr %out2
+  store <2 x i64> %v3, ptr %out3
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load4_v4i32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4i32:
@@ -833,6 +1679,39 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load4_v4i32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v4i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4s }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.4s }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x i32>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <4 x i32>, <4 x i32>, <4 x i32>, <4 x i32> } @llvm.vector.deinterleave4.v16i32(<16 x i32> %loaded)
+  %v0 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 0
+  %v1 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 1
+  %v2 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 2
+  %v3 = extractvalue { <4 x i32>, <4 x i32>, <4 x i32>, <4 x i32> } %deinterleave, 3
+  store <4 x i32> %v0, ptr %out0
+  store <4 x i32> %v1, ptr %out1
+  store <4 x i32> %v2, ptr %out2
+  store <4 x i32> %v3, ptr %out3
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load4_v8i16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v8i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -863,6 +1742,39 @@ entry:
   store <8 x i16> %v3, ptr %out3
   ret void
 }
+
+define void @test_ldnp_interleaved_load4_v8i16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v8i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v8i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.8h }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.8h }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <32 x i16>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } @llvm.vector.deinterleave4.v32i16(<32 x i16> %loaded)
+  %v0 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 0
+  %v1 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 1
+  %v2 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 2
+  %v3 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleave, 3
+  store <8 x i16> %v0, ptr %out0
+  store <8 x i16> %v1, ptr %out1
+  store <8 x i16> %v2, ptr %out2
+  store <8 x i16> %v3, ptr %out3
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load4_v16i8(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v16i8:
@@ -903,6 +1815,39 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load4_v16i8_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v16i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.16b, v1.16b, v2.16b, v3.16b }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v16i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.16b, v1.16b, v2.16b, v3.16b }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.16b }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.16b }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.16b }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.16b }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <64 x i8>, ptr %ptr, align 1, !nontemporal !0
+  %deinterleave = call { <16 x i8>, <16 x i8>, <16 x i8>, <16 x i8> } @llvm.vector.deinterleave4.v64i8(<64 x i8> %loaded)
+  %v0 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 0
+  %v1 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 1
+  %v2 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 2
+  %v3 = extractvalue { <16 x i8>, <16 x i8>, <16 x i8>, <16 x i8> } %deinterleave, 3
+  store <16 x i8> %v0, ptr %out0
+  store <16 x i8> %v1, ptr %out1
+  store <16 x i8> %v2, ptr %out2
+  store <16 x i8> %v3, ptr %out3
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load4_v2f64(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2f64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -933,6 +1878,39 @@ entry:
   store <2 x double> %v3, ptr %out3
   ret void
 }
+
+define void @test_ldnp_interleaved_load4_v2f64_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v2f64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.2d, v1.2d, v2.2d, v3.2d }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v2f64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.2d, v1.2d, v2.2d, v3.2d }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.2d }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.2d }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.2d }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.2d }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <8 x double>, ptr %ptr, align 8, !nontemporal !0
+  %deinterleave = call { <2 x double>, <2 x double>, <2 x double>, <2 x double> } @llvm.vector.deinterleave4.v8f64(<8 x double> %loaded)
+  %v0 = extractvalue { <2 x double>, <2 x double>, <2 x double>, <2 x double> } %deinterleave, 0
+  %v1 = extractvalue { <2 x double>, <2 x double>, <2 x double>, <2 x double> } %deinterleave, 1
+  %v2 = extractvalue { <2 x double>, <2 x double>, <2 x double>, <2 x double> } %deinterleave, 2
+  %v3 = extractvalue { <2 x double>, <2 x double>, <2 x double>, <2 x double> } %deinterleave, 3
+  store <2 x double> %v0, ptr %out0
+  store <2 x double> %v1, ptr %out1
+  store <2 x double> %v2, ptr %out2
+  store <2 x double> %v3, ptr %out3
+  ret void
+}
+
 
 define void @test_ldnp_interleaved_load4_v4f32(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4f32:
@@ -965,6 +1943,39 @@ entry:
   ret void
 }
 
+define void @test_ldnp_interleaved_load4_v4f32_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v4f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v4f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.4s }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.4s }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.4s }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <16 x float>, ptr %ptr, align 4, !nontemporal !0
+  %deinterleave = call { <4 x float>, <4 x float>, <4 x float>, <4 x float> } @llvm.vector.deinterleave4.v16f32(<16 x float> %loaded)
+  %v0 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %deinterleave, 0
+  %v1 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %deinterleave, 1
+  %v2 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %deinterleave, 2
+  %v3 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %deinterleave, 3
+  store <4 x float> %v0, ptr %out0
+  store <4 x float> %v1, ptr %out1
+  store <4 x float> %v2, ptr %out2
+  store <4 x float> %v3, ptr %out3
+  ret void
+}
+
+
 define void @test_ldnp_interleaved_load4_v8f16(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
 ; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v8f16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -995,5 +2006,38 @@ entry:
   store <8 x half> %v3, ptr %out3
   ret void
 }
+
+define void @test_ldnp_interleaved_load4_v8f16_intrinsic(ptr %ptr, ptr %out0, ptr %out1, ptr %out2, ptr %out3) {
+; CHECK-LE-LABEL: test_ldnp_interleaved_load4_v8f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    ld4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-LE-NEXT:    str q0, [x1]
+; CHECK-LE-NEXT:    str q1, [x2]
+; CHECK-LE-NEXT:    str q2, [x3]
+; CHECK-LE-NEXT:    str q3, [x4]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_ldnp_interleaved_load4_v8f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ld4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-BE-NEXT:    st1 { v0.8h }, [x1]
+; CHECK-BE-NEXT:    st1 { v1.8h }, [x2]
+; CHECK-BE-NEXT:    st1 { v2.8h }, [x3]
+; CHECK-BE-NEXT:    st1 { v3.8h }, [x4]
+; CHECK-BE-NEXT:    ret
+entry:
+  %loaded = load <32 x half>, ptr %ptr, align 2, !nontemporal !0
+  %deinterleave = call { <8 x half>, <8 x half>, <8 x half>, <8 x half> } @llvm.vector.deinterleave4.v32f16(<32 x half> %loaded)
+  %v0 = extractvalue { <8 x half>, <8 x half>, <8 x half>, <8 x half> } %deinterleave, 0
+  %v1 = extractvalue { <8 x half>, <8 x half>, <8 x half>, <8 x half> } %deinterleave, 1
+  %v2 = extractvalue { <8 x half>, <8 x half>, <8 x half>, <8 x half> } %deinterleave, 2
+  %v3 = extractvalue { <8 x half>, <8 x half>, <8 x half>, <8 x half> } %deinterleave, 3
+  store <8 x half> %v0, ptr %out0
+  store <8 x half> %v1, ptr %out1
+  store <8 x half> %v2, ptr %out2
+  store <8 x half> %v3, ptr %out3
+  ret void
+}
+
 
 !0 = !{ i32 1 }

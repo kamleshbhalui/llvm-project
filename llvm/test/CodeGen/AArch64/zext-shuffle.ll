@@ -13,6 +13,19 @@ define <2 x i64> @v2i64_02(<4 x i32> %a, <4 x i32> %b) {
   ret <2 x i64> %d
 }
 
+define <2 x i64> @v2i64_02_intrinsic(<4 x i32> %a, <4 x i32> %b) {
+; CHECK-LABEL: v2i64_02_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    mov d1, v0.d[1]
+; CHECK-NEXT:    zip1 v0.2s, v0.2s, v1.2s
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <2 x i32>, <2 x i32> } @llvm.vector.deinterleave2.v4i32(<4 x i32> %a)
+  %c = extractvalue { <2 x i32>, <2 x i32> } %deinterleaved, 0
+  %d = zext <2 x i32> %c to <2 x i64>
+  ret <2 x i64> %d
+}
+
 define <2 x i64> @v2i64_13(<4 x i32> %a, <4 x i32> %b) {
 ; CHECK-LABEL: v2i64_13:
 ; CHECK:       // %bb.0:
@@ -21,6 +34,19 @@ define <2 x i64> @v2i64_13(<4 x i32> %a, <4 x i32> %b) {
 ; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
 ; CHECK-NEXT:    ret
   %c = shufflevector <4 x i32> %a, <4 x i32> %b, <2 x i32> <i32 1, i32 3>
+  %d = zext <2 x i32> %c to <2 x i64>
+  ret <2 x i64> %d
+}
+
+define <2 x i64> @v2i64_13_intrinsic(<4 x i32> %a, <4 x i32> %b) {
+; CHECK-LABEL: v2i64_13_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    mov d1, v0.d[1]
+; CHECK-NEXT:    zip2 v0.2s, v0.2s, v1.2s
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <2 x i32>, <2 x i32> } @llvm.vector.deinterleave2.v4i32(<4 x i32> %a)
+  %c = extractvalue { <2 x i32>, <2 x i32> } %deinterleaved, 1
   %d = zext <2 x i32> %c to <2 x i64>
   ret <2 x i64> %d
 }
@@ -36,6 +62,21 @@ define <2 x i64> @v2i64_04812(<4 x i32> %a, <4 x i32> %b) {
   ret <2 x i64> %d
 }
 
+define <2 x i64> @v2i64_04812_intrinsic(<4 x i32> %a, <4 x i32> %b) {
+; CHECK-LABEL: v2i64_04812_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    movi v2.2d, #0x000000ffffffff
+; CHECK-NEXT:    uzp1 v0.4s, v0.4s, v1.4s
+; CHECK-NEXT:    and v0.16b, v0.16b, v2.16b
+; CHECK-NEXT:    ret
+  %wide0 = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> poison, <4 x i32> %a, i64 0)
+  %wide = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> %wide0, <4 x i32> %b, i64 4)
+  %deinterleaved = call { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } @llvm.vector.deinterleave4.v8i32(<8 x i32> %wide)
+  %c = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleaved, 0
+  %d = zext <2 x i32> %c to <2 x i64>
+  ret <2 x i64> %d
+}
+
 define <2 x i64> @v2i64_15913(<4 x i32> %a, <4 x i32> %b) {
 ; CHECK-LABEL: v2i64_15913:
 ; CHECK:       // %bb.0:
@@ -43,6 +84,22 @@ define <2 x i64> @v2i64_15913(<4 x i32> %a, <4 x i32> %b) {
 ; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
 ; CHECK-NEXT:    ret
   %c = shufflevector <4 x i32> %a, <4 x i32> %b, <2 x i32> <i32 1, i32 5>
+  %d = zext <2 x i32> %c to <2 x i64>
+  ret <2 x i64> %d
+}
+
+define <2 x i64> @v2i64_15913_intrinsic(<4 x i32> %a, <4 x i32> %b) {
+; CHECK-LABEL: v2i64_15913_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.4s, v1.4s, v0.4s
+; CHECK-NEXT:    uzp2 v0.4s, v0.4s, v0.4s
+; CHECK-NEXT:    uzp1 v0.2s, v0.2s, v1.2s
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> poison, <4 x i32> %a, i64 0)
+  %wide = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> %wide0, <4 x i32> %b, i64 4)
+  %deinterleaved = call { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } @llvm.vector.deinterleave4.v8i32(<8 x i32> %wide)
+  %c = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleaved, 1
   %d = zext <2 x i32> %c to <2 x i64>
   ret <2 x i64> %d
 }
@@ -60,6 +117,22 @@ define <2 x i64> @v2i64_261014(<4 x i32> %a, <4 x i32> %b) {
   ret <2 x i64> %d
 }
 
+define <2 x i64> @v2i64_261014_intrinsic(<4 x i32> %a, <4 x i32> %b) {
+; CHECK-LABEL: v2i64_261014_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    xtn v1.2s, v1.2d
+; CHECK-NEXT:    xtn v0.2s, v0.2d
+; CHECK-NEXT:    uzp2 v0.2s, v0.2s, v1.2s
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> poison, <4 x i32> %a, i64 0)
+  %wide = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> %wide0, <4 x i32> %b, i64 4)
+  %deinterleaved = call { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } @llvm.vector.deinterleave4.v8i32(<8 x i32> %wide)
+  %c = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleaved, 2
+  %d = zext <2 x i32> %c to <2 x i64>
+  ret <2 x i64> %d
+}
+
 define <2 x i64> @v2i64_37(<4 x i32> %a, <4 x i32> %b) {
 ; CHECK-LABEL: v2i64_37:
 ; CHECK:       // %bb.0:
@@ -69,6 +142,22 @@ define <2 x i64> @v2i64_37(<4 x i32> %a, <4 x i32> %b) {
 ; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
 ; CHECK-NEXT:    ret
   %c = shufflevector <4 x i32> %a, <4 x i32> %b, <2 x i32> <i32 3, i32 7>
+  %d = zext <2 x i32> %c to <2 x i64>
+  ret <2 x i64> %d
+}
+
+define <2 x i64> @v2i64_37_intrinsic(<4 x i32> %a, <4 x i32> %b) {
+; CHECK-LABEL: v2i64_37_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.4s, v1.4s, v0.4s
+; CHECK-NEXT:    uzp2 v0.4s, v0.4s, v0.4s
+; CHECK-NEXT:    uzp2 v0.2s, v0.2s, v1.2s
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> poison, <4 x i32> %a, i64 0)
+  %wide = call <8 x i32> @llvm.vector.insert.v8i32.v4i32(<8 x i32> %wide0, <4 x i32> %b, i64 4)
+  %deinterleaved = call { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } @llvm.vector.deinterleave4.v8i32(<8 x i32> %wide)
+  %c = extractvalue { <2 x i32>, <2 x i32>, <2 x i32>, <2 x i32> } %deinterleaved, 3
   %d = zext <2 x i32> %c to <2 x i64>
   ret <2 x i64> %d
 }
@@ -87,6 +176,21 @@ define <4 x i64> @v2i64_i16_04812(<16 x i16> %a) {
   ret <4 x i64> %z1
 }
 
+define <4 x i64> @v2i64_i16_04812_intrinsic(<16 x i16> %a) {
+; CHECK-LABEL: v2i64_i16_04812_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    movi v2.2d, #0x00ffff0000ffff
+; CHECK-NEXT:    uzp1 v0.8h, v0.8h, v1.8h
+; CHECK-NEXT:    and v0.16b, v0.16b, v2.16b
+; CHECK-NEXT:    ushll2 v1.2d, v0.4s, #0
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %a)
+  %s1 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 0
+  %z1 = zext <4 x i16> %s1 to <4 x i64>
+  ret <4 x i64> %z1
+}
+
 define <4 x i64> @v2i64_i16_15913(<16 x i16> %a) {
 ; CHECK-LABEL: v2i64_i16_15913:
 ; CHECK:       // %bb.0:
@@ -97,6 +201,22 @@ define <4 x i64> @v2i64_i16_15913(<16 x i16> %a) {
 ; CHECK-NEXT:    and v1.16b, v1.16b, v2.16b
 ; CHECK-NEXT:    ret
   %s1 = shufflevector <16 x i16> %a, <16 x i16> undef, <4 x i32> <i32 1, i32 5, i32 9, i32 13>
+  %z1 = zext <4 x i16> %s1 to <4 x i64>
+  ret <4 x i64> %z1
+}
+
+define <4 x i64> @v2i64_i16_15913_intrinsic(<16 x i16> %a) {
+; CHECK-LABEL: v2i64_i16_15913_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.8h, v1.8h, v0.8h
+; CHECK-NEXT:    uzp2 v0.8h, v0.8h, v0.8h
+; CHECK-NEXT:    uzp1 v0.4h, v0.4h, v1.4h
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ushll2 v1.2d, v0.4s, #0
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %a)
+  %s1 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 1
   %z1 = zext <4 x i16> %s1 to <4 x i64>
   ret <4 x i64> %z1
 }
@@ -115,6 +235,22 @@ define <4 x i64> @v2i64_i16_261014(<16 x i16> %a) {
   ret <4 x i64> %z1
 }
 
+define <4 x i64> @v2i64_i16_261014_intrinsic(<16 x i16> %a) {
+; CHECK-LABEL: v2i64_i16_261014_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    xtn v1.4h, v1.4s
+; CHECK-NEXT:    xtn v0.4h, v0.4s
+; CHECK-NEXT:    uzp2 v0.4h, v0.4h, v1.4h
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ushll2 v1.2d, v0.4s, #0
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %a)
+  %s1 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 2
+  %z1 = zext <4 x i16> %s1 to <4 x i64>
+  ret <4 x i64> %z1
+}
+
 define <4 x i64> @v2i64_i16_371115(<16 x i16> %a) {
 ; CHECK-LABEL: v2i64_i16_371115:
 ; CHECK:       // %bb.0:
@@ -122,6 +258,22 @@ define <4 x i64> @v2i64_i16_371115(<16 x i16> %a) {
 ; CHECK-NEXT:    ushr v1.2d, v1.2d, #48
 ; CHECK-NEXT:    ret
   %s1 = shufflevector <16 x i16> %a, <16 x i16> undef, <4 x i32> <i32 3, i32 7, i32 11, i32 15>
+  %z1 = zext <4 x i16> %s1 to <4 x i64>
+  ret <4 x i64> %z1
+}
+
+define <4 x i64> @v2i64_i16_371115_intrinsic(<16 x i16> %a) {
+; CHECK-LABEL: v2i64_i16_371115_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.8h, v1.8h, v0.8h
+; CHECK-NEXT:    uzp2 v0.8h, v0.8h, v0.8h
+; CHECK-NEXT:    uzp2 v0.4h, v0.4h, v1.4h
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ushll2 v1.2d, v0.4s, #0
+; CHECK-NEXT:    ushll v0.2d, v0.2s, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %a)
+  %s1 = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 3
   %z1 = zext <4 x i16> %s1 to <4 x i64>
   ret <4 x i64> %z1
 }
@@ -138,12 +290,35 @@ define <4 x i32> @v4i32_0246(<8 x i16> %a, <8 x i16> %b) {
   ret <4 x i32> %d
 }
 
+define <4 x i32> @v4i32_0246_intrinsic(<8 x i16> %a, <8 x i16> %b) {
+; CHECK-LABEL: v4i32_0246_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    movi v1.2d, #0x00ffff0000ffff
+; CHECK-NEXT:    and v0.16b, v0.16b, v1.16b
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <4 x i16>, <4 x i16> } @llvm.vector.deinterleave2.v8i16(<8 x i16> %a)
+  %c = extractvalue { <4 x i16>, <4 x i16> } %deinterleaved, 0
+  %d = zext <4 x i16> %c to <4 x i32>
+  ret <4 x i32> %d
+}
+
 define <4 x i32> @v4i32_1357(<8 x i16> %a, <8 x i16> %b) {
 ; CHECK-LABEL: v4i32_1357:
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    ushr v0.4s, v0.4s, #16
 ; CHECK-NEXT:    ret
   %c = shufflevector <8 x i16> %a, <8 x i16> %b, <4 x i32> <i32 1, i32 3, i32 5, i32 7>
+  %d = zext <4 x i16> %c to <4 x i32>
+  ret <4 x i32> %d
+}
+
+define <4 x i32> @v4i32_1357_intrinsic(<8 x i16> %a, <8 x i16> %b) {
+; CHECK-LABEL: v4i32_1357_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    ushr v0.4s, v0.4s, #16
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <4 x i16>, <4 x i16> } @llvm.vector.deinterleave2.v8i16(<8 x i16> %a)
+  %c = extractvalue { <4 x i16>, <4 x i16> } %deinterleaved, 1
   %d = zext <4 x i16> %c to <4 x i32>
   ret <4 x i32> %d
 }
@@ -160,6 +335,21 @@ define <4 x i32> @v4i32_04812(<8 x i16> %a, <8 x i16> %b) {
   ret <4 x i32> %d
 }
 
+define <4 x i32> @v4i32_04812_intrinsic(<8 x i16> %a, <8 x i16> %b) {
+; CHECK-LABEL: v4i32_04812_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    movi v2.2d, #0x00ffff0000ffff
+; CHECK-NEXT:    uzp1 v0.8h, v0.8h, v1.8h
+; CHECK-NEXT:    and v0.16b, v0.16b, v2.16b
+; CHECK-NEXT:    ret
+  %wide0 = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> poison, <8 x i16> %a, i64 0)
+  %wide = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> %wide0, <8 x i16> %b, i64 8)
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %wide)
+  %c = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 0
+  %d = zext <4 x i16> %c to <4 x i32>
+  ret <4 x i32> %d
+}
+
 define <4 x i32> @v4i32_15913(<8 x i16> %a, <8 x i16> %b) {
 ; CHECK-LABEL: v4i32_15913:
 ; CHECK:       // %bb.0:
@@ -167,6 +357,22 @@ define <4 x i32> @v4i32_15913(<8 x i16> %a, <8 x i16> %b) {
 ; CHECK-NEXT:    ushr v0.4s, v0.4s, #16
 ; CHECK-NEXT:    ret
   %c = shufflevector <8 x i16> %a, <8 x i16> %b, <4 x i32> <i32 1, i32 5, i32 9, i32 13>
+  %d = zext <4 x i16> %c to <4 x i32>
+  ret <4 x i32> %d
+}
+
+define <4 x i32> @v4i32_15913_intrinsic(<8 x i16> %a, <8 x i16> %b) {
+; CHECK-LABEL: v4i32_15913_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.8h, v1.8h, v0.8h
+; CHECK-NEXT:    uzp2 v0.8h, v0.8h, v0.8h
+; CHECK-NEXT:    uzp1 v0.4h, v0.4h, v1.4h
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> poison, <8 x i16> %a, i64 0)
+  %wide = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> %wide0, <8 x i16> %b, i64 8)
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %wide)
+  %c = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 1
   %d = zext <4 x i16> %c to <4 x i32>
   ret <4 x i32> %d
 }
@@ -183,6 +389,22 @@ define <4 x i32> @v4i32_261014(<8 x i16> %a, <8 x i16> %b) {
   ret <4 x i32> %d
 }
 
+define <4 x i32> @v4i32_261014_intrinsic(<8 x i16> %a, <8 x i16> %b) {
+; CHECK-LABEL: v4i32_261014_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    xtn v1.4h, v1.4s
+; CHECK-NEXT:    xtn v0.4h, v0.4s
+; CHECK-NEXT:    uzp2 v0.4h, v0.4h, v1.4h
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> poison, <8 x i16> %a, i64 0)
+  %wide = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> %wide0, <8 x i16> %b, i64 8)
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %wide)
+  %c = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 2
+  %d = zext <4 x i16> %c to <4 x i32>
+  ret <4 x i32> %d
+}
+
 define <4 x i32> @v4i32_371115(<8 x i16> %a, <8 x i16> %b) {
 ; CHECK-LABEL: v4i32_371115:
 ; CHECK:       // %bb.0:
@@ -190,6 +412,22 @@ define <4 x i32> @v4i32_371115(<8 x i16> %a, <8 x i16> %b) {
 ; CHECK-NEXT:    ushr v0.4s, v0.4s, #16
 ; CHECK-NEXT:    ret
   %c = shufflevector <8 x i16> %a, <8 x i16> %b, <4 x i32> <i32 3, i32 7, i32 11, i32 15>
+  %d = zext <4 x i16> %c to <4 x i32>
+  ret <4 x i32> %d
+}
+
+define <4 x i32> @v4i32_371115_intrinsic(<8 x i16> %a, <8 x i16> %b) {
+; CHECK-LABEL: v4i32_371115_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.8h, v1.8h, v0.8h
+; CHECK-NEXT:    uzp2 v0.8h, v0.8h, v0.8h
+; CHECK-NEXT:    uzp2 v0.4h, v0.4h, v1.4h
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> poison, <8 x i16> %a, i64 0)
+  %wide = call <16 x i16> @llvm.vector.insert.v16i16.v8i16(<16 x i16> %wide0, <8 x i16> %b, i64 8)
+  %deinterleaved = call { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } @llvm.vector.deinterleave4.v16i16(<16 x i16> %wide)
+  %c = extractvalue { <4 x i16>, <4 x i16>, <4 x i16>, <4 x i16> } %deinterleaved, 3
   %d = zext <4 x i16> %c to <4 x i32>
   ret <4 x i32> %d
 }
@@ -205,12 +443,34 @@ define <8 x i16> @v8i16_0246(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i16> %d
 }
 
+define <8 x i16> @v8i16_0246_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i16_0246_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    bic v0.8h, #255, lsl #8
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <8 x i8>, <8 x i8> } @llvm.vector.deinterleave2.v16i8(<16 x i8> %a)
+  %c = extractvalue { <8 x i8>, <8 x i8> } %deinterleaved, 0
+  %d = zext <8 x i8> %c to <8 x i16>
+  ret <8 x i16> %d
+}
+
 define <8 x i16> @v8i16_1357(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i16_1357:
 ; CHECK:       // %bb.0:
 ; CHECK-NEXT:    ushr v0.8h, v0.8h, #8
 ; CHECK-NEXT:    ret
   %c = shufflevector <16 x i8> %a, <16 x i8> %b, <8 x i32> <i32 1, i32 3, i32 5, i32 7, i32 9, i32 11, i32 13, i32 15>
+  %d = zext <8 x i8> %c to <8 x i16>
+  ret <8 x i16> %d
+}
+
+define <8 x i16> @v8i16_1357_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i16_1357_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    ushr v0.8h, v0.8h, #8
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <8 x i8>, <8 x i8> } @llvm.vector.deinterleave2.v16i8(<16 x i8> %a)
+  %c = extractvalue { <8 x i8>, <8 x i8> } %deinterleaved, 1
   %d = zext <8 x i8> %c to <8 x i16>
   ret <8 x i16> %d
 }
@@ -226,6 +486,20 @@ define <8 x i16> @v8i16_04812(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i16> %d
 }
 
+define <8 x i16> @v8i16_04812_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i16_04812_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp1 v0.16b, v0.16b, v1.16b
+; CHECK-NEXT:    bic v0.8h, #255, lsl #8
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 0
+  %d = zext <8 x i8> %c to <8 x i16>
+  ret <8 x i16> %d
+}
+
 define <8 x i16> @v8i16_15913(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i16_15913:
 ; CHECK:       // %bb.0:
@@ -233,6 +507,22 @@ define <8 x i16> @v8i16_15913(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-NEXT:    ushr v0.8h, v0.8h, #8
 ; CHECK-NEXT:    ret
   %c = shufflevector <16 x i8> %a, <16 x i8> %b, <8 x i32> <i32 1, i32 5, i32 9, i32 13, i32 17, i32 21, i32 25, i32 29>
+  %d = zext <8 x i8> %c to <8 x i16>
+  ret <8 x i16> %d
+}
+
+define <8 x i16> @v8i16_15913_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i16_15913_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.16b, v1.16b, v0.16b
+; CHECK-NEXT:    uzp2 v0.16b, v0.16b, v0.16b
+; CHECK-NEXT:    uzp1 v0.8b, v0.8b, v1.8b
+; CHECK-NEXT:    ushll v0.8h, v0.8b, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 1
   %d = zext <8 x i8> %c to <8 x i16>
   ret <8 x i16> %d
 }
@@ -248,6 +538,22 @@ define <8 x i16> @v8i16_261014(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i16> %d
 }
 
+define <8 x i16> @v8i16_261014_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i16_261014_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    xtn v1.8b, v1.8h
+; CHECK-NEXT:    xtn v0.8b, v0.8h
+; CHECK-NEXT:    uzp2 v0.8b, v0.8b, v1.8b
+; CHECK-NEXT:    ushll v0.8h, v0.8b, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 2
+  %d = zext <8 x i8> %c to <8 x i16>
+  ret <8 x i16> %d
+}
+
 define <8 x i16> @v8i16_371115(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i16_371115:
 ; CHECK:       // %bb.0:
@@ -255,6 +561,22 @@ define <8 x i16> @v8i16_371115(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-NEXT:    ushr v0.8h, v0.8h, #8
 ; CHECK-NEXT:    ret
   %c = shufflevector <16 x i8> %a, <16 x i8> %b, <8 x i32> <i32 3, i32 7, i32 11, i32 15, i32 19, i32 23, i32 27, i32 31>
+  %d = zext <8 x i8> %c to <8 x i16>
+  ret <8 x i16> %d
+}
+
+define <8 x i16> @v8i16_371115_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i16_371115_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.16b, v1.16b, v0.16b
+; CHECK-NEXT:    uzp2 v0.16b, v0.16b, v0.16b
+; CHECK-NEXT:    uzp2 v0.8b, v0.8b, v1.8b
+; CHECK-NEXT:    ushll v0.8h, v0.8b, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 3
   %d = zext <8 x i8> %c to <8 x i16>
   ret <8 x i16> %d
 }
@@ -272,6 +594,19 @@ define <8 x i32> @v8i32_0246(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i32> %d
 }
 
+define <8 x i32> @v8i32_0246_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i32_0246_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    bic v0.8h, #255, lsl #8
+; CHECK-NEXT:    ushll2 v1.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <8 x i8>, <8 x i8> } @llvm.vector.deinterleave2.v16i8(<16 x i8> %a)
+  %c = extractvalue { <8 x i8>, <8 x i8> } %deinterleaved, 0
+  %d = zext <8 x i8> %c to <8 x i32>
+  ret <8 x i32> %d
+}
+
 define <8 x i32> @v8i32_1357(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i32_1357:
 ; CHECK:       // %bb.0:
@@ -284,6 +619,19 @@ define <8 x i32> @v8i32_1357(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i32> %d
 }
 
+define <8 x i32> @v8i32_1357_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i32_1357_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    ushr v0.8h, v0.8h, #8
+; CHECK-NEXT:    ushll2 v1.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %deinterleaved = call { <8 x i8>, <8 x i8> } @llvm.vector.deinterleave2.v16i8(<16 x i8> %a)
+  %c = extractvalue { <8 x i8>, <8 x i8> } %deinterleaved, 1
+  %d = zext <8 x i8> %c to <8 x i32>
+  ret <8 x i32> %d
+}
+
 define <8 x i32> @v8i32_04812(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i32_04812:
 ; CHECK:       // %bb.0:
@@ -292,6 +640,22 @@ define <8 x i32> @v8i32_04812(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-NEXT:    and v1.16b, v1.16b, v2.16b
 ; CHECK-NEXT:    ret
   %c = shufflevector <16 x i8> %a, <16 x i8> %b, <8 x i32> <i32 0, i32 4, i32 8, i32 12, i32 16, i32 20, i32 24, i32 28>
+  %d = zext <8 x i8> %c to <8 x i32>
+  ret <8 x i32> %d
+}
+
+define <8 x i32> @v8i32_04812_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i32_04812_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp1 v0.16b, v0.16b, v1.16b
+; CHECK-NEXT:    bic v0.8h, #255, lsl #8
+; CHECK-NEXT:    ushll2 v1.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 0
   %d = zext <8 x i8> %c to <8 x i32>
   ret <8 x i32> %d
 }
@@ -310,6 +674,24 @@ define <8 x i32> @v8i32_15913(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i32> %d
 }
 
+define <8 x i32> @v8i32_15913_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i32_15913_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.16b, v1.16b, v0.16b
+; CHECK-NEXT:    uzp2 v0.16b, v0.16b, v0.16b
+; CHECK-NEXT:    uzp1 v0.8b, v0.8b, v1.8b
+; CHECK-NEXT:    ushll v0.8h, v0.8b, #0
+; CHECK-NEXT:    ushll2 v1.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 1
+  %d = zext <8 x i8> %c to <8 x i32>
+  ret <8 x i32> %d
+}
+
 define <8 x i32> @v8i32_261014(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i32_261014:
 ; CHECK:       // %bb.0:
@@ -323,6 +705,24 @@ define <8 x i32> @v8i32_261014(<16 x i8> %a, <16 x i8> %b) {
   ret <8 x i32> %d
 }
 
+define <8 x i32> @v8i32_261014_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i32_261014_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    xtn v1.8b, v1.8h
+; CHECK-NEXT:    xtn v0.8b, v0.8h
+; CHECK-NEXT:    uzp2 v0.8b, v0.8b, v1.8b
+; CHECK-NEXT:    ushll v0.8h, v0.8b, #0
+; CHECK-NEXT:    ushll2 v1.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 2
+  %d = zext <8 x i8> %c to <8 x i32>
+  ret <8 x i32> %d
+}
+
 define <8 x i32> @v8i32_371115(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-LABEL: v8i32_371115:
 ; CHECK:       // %bb.0:
@@ -330,6 +730,24 @@ define <8 x i32> @v8i32_371115(<16 x i8> %a, <16 x i8> %b) {
 ; CHECK-NEXT:    ushr v1.4s, v1.4s, #24
 ; CHECK-NEXT:    ret
   %c = shufflevector <16 x i8> %a, <16 x i8> %b, <8 x i32> <i32 3, i32 7, i32 11, i32 15, i32 19, i32 23, i32 27, i32 31>
+  %d = zext <8 x i8> %c to <8 x i32>
+  ret <8 x i32> %d
+}
+
+define <8 x i32> @v8i32_371115_intrinsic(<16 x i8> %a, <16 x i8> %b) {
+; CHECK-LABEL: v8i32_371115_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp2 v1.16b, v1.16b, v0.16b
+; CHECK-NEXT:    uzp2 v0.16b, v0.16b, v0.16b
+; CHECK-NEXT:    uzp2 v0.8b, v0.8b, v1.8b
+; CHECK-NEXT:    ushll v0.8h, v0.8b, #0
+; CHECK-NEXT:    ushll2 v1.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
+; CHECK-NEXT:    ret
+  %wide0 = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> poison, <16 x i8> %a, i64 0)
+  %wide = call <32 x i8> @llvm.vector.insert.v32i8.v16i8(<32 x i8> %wide0, <16 x i8> %b, i64 16)
+  %deinterleaved = call { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } @llvm.vector.deinterleave4.v32i8(<32 x i8> %wide)
+  %c = extractvalue { <8 x i8>, <8 x i8>, <8 x i8>, <8 x i8> } %deinterleaved, 3
   %d = zext <8 x i8> %c to <8 x i32>
   ret <8 x i32> %d
 }
@@ -370,6 +788,44 @@ define <8 x i64> @zext_add(<32 x i16> %l) {
     ret <8 x i64> %c
 }
 
+define <8 x i64> @zext_add_intrinsic(<32 x i16> %l) {
+; CHECK-LABEL: zext_add_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    movi v4.2d, #0x00ffff0000ffff
+; CHECK-NEXT:    uzp1 v5.8h, v0.8h, v1.8h
+; CHECK-NEXT:    uzp2 v0.8h, v0.8h, v1.8h
+; CHECK-NEXT:    uzp1 v1.8h, v2.8h, v3.8h
+; CHECK-NEXT:    uzp2 v2.8h, v2.8h, v3.8h
+; CHECK-NEXT:    and v3.16b, v0.16b, v4.16b
+; CHECK-NEXT:    and v6.16b, v5.16b, v4.16b
+; CHECK-NEXT:    ushr v5.4s, v5.4s, #16
+; CHECK-NEXT:    and v7.16b, v2.16b, v4.16b
+; CHECK-NEXT:    and v4.16b, v1.16b, v4.16b
+; CHECK-NEXT:    ushr v16.4s, v1.4s, #16
+; CHECK-NEXT:    add v1.4s, v6.4s, v3.4s
+; CHECK-NEXT:    usra v5.4s, v0.4s, #16
+; CHECK-NEXT:    add v4.4s, v4.4s, v7.4s
+; CHECK-NEXT:    usra v16.4s, v2.4s, #16
+; CHECK-NEXT:    uaddl v0.2d, v1.2s, v5.2s
+; CHECK-NEXT:    uaddl2 v1.2d, v1.4s, v5.4s
+; CHECK-NEXT:    uaddl2 v3.2d, v4.4s, v16.4s
+; CHECK-NEXT:    uaddl v2.2d, v4.2s, v16.2s
+; CHECK-NEXT:    ret
+    %deinterleaved = call { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } @llvm.vector.deinterleave4.v32i16(<32 x i16> %l)
+    %s1 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 0
+    %z1 = zext <8 x i16> %s1 to <8 x i64>
+    %s2 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 1
+    %z2 = zext <8 x i16> %s2 to <8 x i64>
+    %s3 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 2
+    %z3 = zext <8 x i16> %s3 to <8 x i64>
+    %s4 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 3
+    %z4 = zext <8 x i16> %s4 to <8 x i64>
+    %a = add <8 x i64> %z1, %z2
+    %b = add <8 x i64> %z3, %z4
+    %c = add <8 x i64> %a, %b
+    ret <8 x i64> %c
+}
+
 define <8 x i64> @zext_load_add(ptr %p) {
 ; CHECK-LABEL: zext_load_add:
 ; CHECK:       // %bb.0:
@@ -391,6 +847,35 @@ define <8 x i64> @zext_load_add(ptr %p) {
     %s3 = shufflevector <32 x i16> %l, <32 x i16> undef, <8 x i32> <i32 2, i32 6, i32 10, i32 14, i32 18, i32 22, i32 26, i32 30>
     %z3 = zext <8 x i16> %s3 to <8 x i64>
     %s4 = shufflevector <32 x i16> %l, <32 x i16> undef, <8 x i32> <i32 3, i32 7, i32 11, i32 15, i32 19, i32 23, i32 27, i32 31>
+    %z4 = zext <8 x i16> %s4 to <8 x i64>
+    %a = add <8 x i64> %z1, %z2
+    %b = add <8 x i64> %z3, %z4
+    %c = add <8 x i64> %a, %b
+    ret <8 x i64> %c
+}
+
+define <8 x i64> @zext_load_add_intrinsic(ptr %p) {
+; CHECK-LABEL: zext_load_add_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    ld4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-NEXT:    uaddl v4.4s, v0.4h, v1.4h
+; CHECK-NEXT:    uaddl v5.4s, v2.4h, v3.4h
+; CHECK-NEXT:    uaddl2 v6.4s, v0.8h, v1.8h
+; CHECK-NEXT:    uaddl2 v2.4s, v2.8h, v3.8h
+; CHECK-NEXT:    uaddl v0.2d, v4.2s, v5.2s
+; CHECK-NEXT:    uaddl2 v1.2d, v4.4s, v5.4s
+; CHECK-NEXT:    uaddl2 v3.2d, v6.4s, v2.4s
+; CHECK-NEXT:    uaddl v2.2d, v6.2s, v2.2s
+; CHECK-NEXT:    ret
+    %l = load <32 x i16>, ptr %p
+    %deinterleaved = call { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } @llvm.vector.deinterleave4.v32i16(<32 x i16> %l)
+    %s1 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 0
+    %z1 = zext <8 x i16> %s1 to <8 x i64>
+    %s2 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 1
+    %z2 = zext <8 x i16> %s2 to <8 x i64>
+    %s3 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 2
+    %z3 = zext <8 x i16> %s3 to <8 x i64>
+    %s4 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 3
     %z4 = zext <8 x i16> %s4 to <8 x i64>
     %a = add <8 x i64> %z1, %z2
     %b = add <8 x i64> %z3, %z4
@@ -469,6 +954,82 @@ define <8 x double> @uitofp_fadd(<32 x i16> %l) {
     ret <8 x double> %c
 }
 
+define <8 x double> @uitofp_fadd_intrinsic(<32 x i16> %l) {
+; CHECK-LABEL: uitofp_fadd_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    uzp1 v4.8h, v2.8h, v3.8h
+; CHECK-NEXT:    uzp1 v5.8h, v0.8h, v1.8h
+; CHECK-NEXT:    movi v6.2d, #0x00ffff0000ffff
+; CHECK-NEXT:    uzp2 v0.8h, v0.8h, v1.8h
+; CHECK-NEXT:    uzp2 v1.8h, v2.8h, v3.8h
+; CHECK-NEXT:    and v2.16b, v5.16b, v6.16b
+; CHECK-NEXT:    and v3.16b, v4.16b, v6.16b
+; CHECK-NEXT:    ushr v5.4s, v5.4s, #16
+; CHECK-NEXT:    and v7.16b, v0.16b, v6.16b
+; CHECK-NEXT:    and v6.16b, v1.16b, v6.16b
+; CHECK-NEXT:    ushr v4.4s, v4.4s, #16
+; CHECK-NEXT:    ushr v0.4s, v0.4s, #16
+; CHECK-NEXT:    ushr v1.4s, v1.4s, #16
+; CHECK-NEXT:    ushll2 v16.2d, v2.4s, #0
+; CHECK-NEXT:    ushll2 v17.2d, v3.4s, #0
+; CHECK-NEXT:    ushll v2.2d, v2.2s, #0
+; CHECK-NEXT:    ushll v3.2d, v3.2s, #0
+; CHECK-NEXT:    ushll2 v18.2d, v7.4s, #0
+; CHECK-NEXT:    ushll2 v19.2d, v6.4s, #0
+; CHECK-NEXT:    ushll v7.2d, v7.2s, #0
+; CHECK-NEXT:    ushll v6.2d, v6.2s, #0
+; CHECK-NEXT:    ushll2 v20.2d, v5.4s, #0
+; CHECK-NEXT:    ushll2 v21.2d, v4.4s, #0
+; CHECK-NEXT:    ushll v5.2d, v5.2s, #0
+; CHECK-NEXT:    ushll v4.2d, v4.2s, #0
+; CHECK-NEXT:    ushll v22.2d, v0.2s, #0
+; CHECK-NEXT:    ushll2 v0.2d, v0.4s, #0
+; CHECK-NEXT:    ushll2 v23.2d, v1.4s, #0
+; CHECK-NEXT:    ushll v1.2d, v1.2s, #0
+; CHECK-NEXT:    ucvtf v16.2d, v16.2d
+; CHECK-NEXT:    ucvtf v17.2d, v17.2d
+; CHECK-NEXT:    ucvtf v2.2d, v2.2d
+; CHECK-NEXT:    ucvtf v3.2d, v3.2d
+; CHECK-NEXT:    ucvtf v18.2d, v18.2d
+; CHECK-NEXT:    ucvtf v19.2d, v19.2d
+; CHECK-NEXT:    ucvtf v7.2d, v7.2d
+; CHECK-NEXT:    ucvtf v6.2d, v6.2d
+; CHECK-NEXT:    ucvtf v20.2d, v20.2d
+; CHECK-NEXT:    ucvtf v21.2d, v21.2d
+; CHECK-NEXT:    ucvtf v5.2d, v5.2d
+; CHECK-NEXT:    ucvtf v4.2d, v4.2d
+; CHECK-NEXT:    ucvtf v22.2d, v22.2d
+; CHECK-NEXT:    ucvtf v0.2d, v0.2d
+; CHECK-NEXT:    ucvtf v23.2d, v23.2d
+; CHECK-NEXT:    ucvtf v1.2d, v1.2d
+; CHECK-NEXT:    fadd v6.2d, v3.2d, v6.2d
+; CHECK-NEXT:    fadd v2.2d, v2.2d, v7.2d
+; CHECK-NEXT:    fadd v3.2d, v17.2d, v19.2d
+; CHECK-NEXT:    fadd v7.2d, v16.2d, v18.2d
+; CHECK-NEXT:    fadd v5.2d, v5.2d, v22.2d
+; CHECK-NEXT:    fadd v4.2d, v4.2d, v1.2d
+; CHECK-NEXT:    fadd v16.2d, v21.2d, v23.2d
+; CHECK-NEXT:    fadd v1.2d, v20.2d, v0.2d
+; CHECK-NEXT:    fadd v0.2d, v2.2d, v5.2d
+; CHECK-NEXT:    fadd v1.2d, v7.2d, v1.2d
+; CHECK-NEXT:    fadd v3.2d, v3.2d, v16.2d
+; CHECK-NEXT:    fadd v2.2d, v6.2d, v4.2d
+; CHECK-NEXT:    ret
+    %deinterleaved = call { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } @llvm.vector.deinterleave4.v32i16(<32 x i16> %l)
+    %s1 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 0
+    %z1 = uitofp <8 x i16> %s1 to <8 x double>
+    %s2 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 1
+    %z2 = uitofp <8 x i16> %s2 to <8 x double>
+    %s3 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 2
+    %z3 = uitofp <8 x i16> %s3 to <8 x double>
+    %s4 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 3
+    %z4 = uitofp <8 x i16> %s4 to <8 x double>
+    %a = fadd <8 x double> %z1, %z2
+    %b = fadd <8 x double> %z3, %z4
+    %c = fadd <8 x double> %a, %b
+    ret <8 x double> %c
+}
+
 define <8 x double> @uitofp_load_fadd(ptr %p) {
 ; CHECK-LABEL: uitofp_load_fadd:
 ; CHECK:       // %bb.0:
@@ -536,6 +1097,79 @@ define <8 x double> @uitofp_load_fadd(ptr %p) {
     %s3 = shufflevector <32 x i16> %l, <32 x i16> undef, <8 x i32> <i32 2, i32 6, i32 10, i32 14, i32 18, i32 22, i32 26, i32 30>
     %z3 = uitofp <8 x i16> %s3 to <8 x double>
     %s4 = shufflevector <32 x i16> %l, <32 x i16> undef, <8 x i32> <i32 3, i32 7, i32 11, i32 15, i32 19, i32 23, i32 27, i32 31>
+    %z4 = uitofp <8 x i16> %s4 to <8 x double>
+    %a = fadd <8 x double> %z1, %z2
+    %b = fadd <8 x double> %z3, %z4
+    %c = fadd <8 x double> %a, %b
+    ret <8 x double> %c
+}
+
+define <8 x double> @uitofp_load_fadd_intrinsic(ptr %p) {
+; CHECK-LABEL: uitofp_load_fadd_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    ld4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-NEXT:    ushll2 v4.4s, v0.8h, #0
+; CHECK-NEXT:    ushll v5.4s, v0.4h, #0
+; CHECK-NEXT:    ushll2 v6.4s, v1.8h, #0
+; CHECK-NEXT:    ushll v7.4s, v1.4h, #0
+; CHECK-NEXT:    ushll2 v16.4s, v2.8h, #0
+; CHECK-NEXT:    ushll v17.4s, v2.4h, #0
+; CHECK-NEXT:    ushll2 v18.4s, v3.8h, #0
+; CHECK-NEXT:    ushll v0.4s, v3.4h, #0
+; CHECK-NEXT:    ushll2 v1.2d, v4.4s, #0
+; CHECK-NEXT:    ushll2 v2.2d, v5.4s, #0
+; CHECK-NEXT:    ushll v3.2d, v4.2s, #0
+; CHECK-NEXT:    ushll v4.2d, v5.2s, #0
+; CHECK-NEXT:    ushll2 v5.2d, v6.4s, #0
+; CHECK-NEXT:    ushll2 v19.2d, v7.4s, #0
+; CHECK-NEXT:    ushll v6.2d, v6.2s, #0
+; CHECK-NEXT:    ushll v7.2d, v7.2s, #0
+; CHECK-NEXT:    ushll2 v20.2d, v16.4s, #0
+; CHECK-NEXT:    ushll2 v21.2d, v17.4s, #0
+; CHECK-NEXT:    ushll v16.2d, v16.2s, #0
+; CHECK-NEXT:    ushll v17.2d, v17.2s, #0
+; CHECK-NEXT:    ushll v22.2d, v0.2s, #0
+; CHECK-NEXT:    ushll2 v23.2d, v18.4s, #0
+; CHECK-NEXT:    ushll2 v0.2d, v0.4s, #0
+; CHECK-NEXT:    ushll v18.2d, v18.2s, #0
+; CHECK-NEXT:    ucvtf v1.2d, v1.2d
+; CHECK-NEXT:    ucvtf v2.2d, v2.2d
+; CHECK-NEXT:    ucvtf v3.2d, v3.2d
+; CHECK-NEXT:    ucvtf v4.2d, v4.2d
+; CHECK-NEXT:    ucvtf v5.2d, v5.2d
+; CHECK-NEXT:    ucvtf v19.2d, v19.2d
+; CHECK-NEXT:    ucvtf v6.2d, v6.2d
+; CHECK-NEXT:    ucvtf v7.2d, v7.2d
+; CHECK-NEXT:    ucvtf v20.2d, v20.2d
+; CHECK-NEXT:    ucvtf v21.2d, v21.2d
+; CHECK-NEXT:    ucvtf v16.2d, v16.2d
+; CHECK-NEXT:    ucvtf v17.2d, v17.2d
+; CHECK-NEXT:    ucvtf v22.2d, v22.2d
+; CHECK-NEXT:    ucvtf v23.2d, v23.2d
+; CHECK-NEXT:    ucvtf v0.2d, v0.2d
+; CHECK-NEXT:    ucvtf v18.2d, v18.2d
+; CHECK-NEXT:    fadd v1.2d, v1.2d, v5.2d
+; CHECK-NEXT:    fadd v4.2d, v4.2d, v7.2d
+; CHECK-NEXT:    fadd v6.2d, v3.2d, v6.2d
+; CHECK-NEXT:    fadd v2.2d, v2.2d, v19.2d
+; CHECK-NEXT:    fadd v3.2d, v17.2d, v22.2d
+; CHECK-NEXT:    fadd v5.2d, v16.2d, v18.2d
+; CHECK-NEXT:    fadd v7.2d, v21.2d, v0.2d
+; CHECK-NEXT:    fadd v16.2d, v20.2d, v23.2d
+; CHECK-NEXT:    fadd v0.2d, v4.2d, v3.2d
+; CHECK-NEXT:    fadd v3.2d, v1.2d, v16.2d
+; CHECK-NEXT:    fadd v1.2d, v2.2d, v7.2d
+; CHECK-NEXT:    fadd v2.2d, v6.2d, v5.2d
+; CHECK-NEXT:    ret
+    %l = load <32 x i16>, ptr %p
+    %deinterleaved = call { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } @llvm.vector.deinterleave4.v32i16(<32 x i16> %l)
+    %s1 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 0
+    %z1 = uitofp <8 x i16> %s1 to <8 x double>
+    %s2 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 1
+    %z2 = uitofp <8 x i16> %s2 to <8 x double>
+    %s3 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 2
+    %z3 = uitofp <8 x i16> %s3 to <8 x double>
+    %s4 = extractvalue { <8 x i16>, <8 x i16>, <8 x i16>, <8 x i16> } %deinterleaved, 3
     %z4 = uitofp <8 x i16> %s4 to <8 x double>
     %a = fadd <8 x double> %z1, %z2
     %b = fadd <8 x double> %z3, %z4
@@ -646,8 +1280,8 @@ define <4 x i32> @isUndefDeInterleave_t3(<8 x i16> %a) {
 define <4 x i32> @isUndefDeInterleave_b0_bad(<8 x i16> %a, <8 x i16> %b) {
 ; CHECK-LABEL: isUndefDeInterleave_b0_bad:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    adrp x8, .LCPI40_0
-; CHECK-NEXT:    ldr q1, [x8, :lo12:.LCPI40_0]
+; CHECK-NEXT:    adrp x8, .LCPI72_0
+; CHECK-NEXT:    ldr q1, [x8, :lo12:.LCPI72_0]
 ; CHECK-NEXT:    tbl v0.16b, { v0.16b }, v1.16b
 ; CHECK-NEXT:    ushll v0.4s, v0.4h, #0
 ; CHECK-NEXT:    ret
@@ -660,8 +1294,8 @@ define <4 x i32> @isUndefDeInterleave_b0_bad(<8 x i16> %a, <8 x i16> %b) {
 define <4 x i32> @isUndefDeInterleave_t1_bad(<8 x i16> %a) {
 ; CHECK-LABEL: isUndefDeInterleave_t1_bad:
 ; CHECK:       // %bb.0:
-; CHECK-NEXT:    adrp x8, .LCPI41_0
-; CHECK-NEXT:    ldr q1, [x8, :lo12:.LCPI41_0]
+; CHECK-NEXT:    adrp x8, .LCPI73_0
+; CHECK-NEXT:    ldr q1, [x8, :lo12:.LCPI73_0]
 ; CHECK-NEXT:    tbl v0.16b, { v0.16b }, v1.16b
 ; CHECK-NEXT:    ushll2 v0.4s, v0.8h, #0
 ; CHECK-NEXT:    ret

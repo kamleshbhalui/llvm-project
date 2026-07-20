@@ -28,6 +28,27 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store2_v2i32_intrinsic(<2 x i32> %v0, <2 x i32> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    st2 { v0.2s, v1.2s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v2i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.2s, v1.2s
+; CHECK-BE-NEXT:    rev64 v1.2s, v0.2s
+; CHECK-BE-NEXT:    st2 { v1.2s, v2.2s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <4 x i32> @llvm.vector.interleave2.v4i32(<2 x i32> %v0, <2 x i32> %v1)
+  store <4 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store2_v4i16(<4 x i16> %v0, <4 x i16> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -50,6 +71,27 @@ entry:
   store <8 x i16> %shuffle, ptr %ptr, align 2, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v4i16_intrinsic(<4 x i16> %v0, <4 x i16> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    st2 { v0.4h, v1.4h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v4i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.4h, v1.4h
+; CHECK-BE-NEXT:    rev64 v1.4h, v0.4h
+; CHECK-BE-NEXT:    st2 { v1.4h, v2.4h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x i16> @llvm.vector.interleave2.v8i16(<4 x i16> %v0, <4 x i16> %v1)
+  store <8 x i16> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v8i8(<8 x i8> %v0, <8 x i8> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v8i8:
@@ -75,6 +117,27 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store2_v8i8_intrinsic(<8 x i8> %v0, <8 x i8> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v8i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    st2 { v0.8b, v1.8b }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v8i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.8b, v1.8b
+; CHECK-BE-NEXT:    rev64 v1.8b, v0.8b
+; CHECK-BE-NEXT:    st2 { v1.8b, v2.8b }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x i8> @llvm.vector.interleave2.v16i8(<8 x i8> %v0, <8 x i8> %v1)
+  store <16 x i8> %interleave, ptr %ptr, align 1, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store2_v2f32(<2 x float> %v0, <2 x float> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2f32:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -97,6 +160,27 @@ entry:
   store <4 x float> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v2f32_intrinsic(<2 x float> %v0, <2 x float> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    st2 { v0.2s, v1.2s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v2f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.2s, v1.2s
+; CHECK-BE-NEXT:    rev64 v1.2s, v0.2s
+; CHECK-BE-NEXT:    st2 { v1.2s, v2.2s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <4 x float> @llvm.vector.interleave2.v4f32(<2 x float> %v0, <2 x float> %v1)
+  store <4 x float> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v4f16(<4 x half> %v0, <4 x half> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4f16:
@@ -121,6 +205,27 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store2_v4f16_intrinsic(<4 x half> %v0, <4 x half> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1 def $d0_d1
+; CHECK-LE-NEXT:    st2 { v0.4h, v1.4h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v4f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.4h, v1.4h
+; CHECK-BE-NEXT:    rev64 v1.4h, v0.4h
+; CHECK-BE-NEXT:    st2 { v1.4h, v2.4h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x half> @llvm.vector.interleave2.v8f16(<4 x half> %v0, <4 x half> %v1)
+  store <8 x half> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store2_v2i64(<2 x i64> %v0, <2 x i64> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2i64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -141,6 +246,27 @@ entry:
   store <4 x i64> %shuffle, ptr %ptr, align 8, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v2i64_intrinsic(<2 x i64> %v0, <2 x i64> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2i64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.2d, v1.2d }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v2i64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.2d, v2.2d }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <4 x i64> @llvm.vector.interleave2.v4i64(<2 x i64> %v0, <2 x i64> %v1)
+  store <4 x i64> %interleave, ptr %ptr, align 8, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v4i32(<4 x i32> %v0, <4 x i32> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4i32:
@@ -164,6 +290,29 @@ entry:
   store <8 x i32> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v4i32_intrinsic(<4 x i32> %v0, <4 x i32> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.4s, v1.4s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v4i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.4s, v2.4s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x i32> @llvm.vector.interleave2.v8i32(<4 x i32> %v0, <4 x i32> %v1)
+  store <8 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v8i16(<8 x i16> %v0, <8 x i16> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v8i16:
@@ -189,14 +338,37 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store2_v8i16_intrinsic(<8 x i16> %v0, <8 x i16> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v8i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.8h, v1.8h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v8i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v1.8h, v1.8h
+; CHECK-BE-NEXT:    rev64 v0.8h, v0.8h
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.8h, v2.8h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x i16> @llvm.vector.interleave2.v16i16(<8 x i16> %v0, <8 x i16> %v1)
+  store <16 x i16> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store2_v16i8(<16 x i8> %v0, <16 x i8> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v16i8:
 ; CHECK-LE:       // %bb.0: // %entry
-; CHECK-LE-NEXT:    adrp x8, .LCPI8_0
-; CHECK-LE-NEXT:    adrp x9, .LCPI8_1
+; CHECK-LE-NEXT:    adrp x8, .LCPI16_0
+; CHECK-LE-NEXT:    adrp x9, .LCPI16_1
 ; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
-; CHECK-LE-NEXT:    ldr q2, [x8, :lo12:.LCPI8_0]
-; CHECK-LE-NEXT:    ldr q3, [x9, :lo12:.LCPI8_1]
+; CHECK-LE-NEXT:    ldr q2, [x8, :lo12:.LCPI16_0]
+; CHECK-LE-NEXT:    ldr q3, [x9, :lo12:.LCPI16_1]
 ; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
 ; CHECK-LE-NEXT:    tbl v2.16b, { v0.16b, v1.16b }, v2.16b
 ; CHECK-LE-NEXT:    tbl v0.16b, { v0.16b }, v3.16b
@@ -222,6 +394,29 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store2_v16i8_intrinsic(<16 x i8> %v0, <16 x i8> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v16i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.16b, v1.16b }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v16i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v1.16b, v1.16b
+; CHECK-BE-NEXT:    rev64 v0.16b, v0.16b
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.16b, v2.16b }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <32 x i8> @llvm.vector.interleave2.v32i8(<16 x i8> %v0, <16 x i8> %v1)
+  store <32 x i8> %interleave, ptr %ptr, align 1, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store2_v2f64(<2 x double> %v0, <2 x double> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2f64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -242,6 +437,27 @@ entry:
   store <4 x double> %shuffle, ptr %ptr, align 8, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v2f64_intrinsic(<2 x double> %v0, <2 x double> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2f64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.2d, v1.2d }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v2f64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.2d, v2.2d }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <4 x double> @llvm.vector.interleave2.v4f64(<2 x double> %v0, <2 x double> %v1)
+  store <4 x double> %interleave, ptr %ptr, align 8, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v4f32(<4 x float> %v0, <4 x float> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4f32:
@@ -265,6 +481,29 @@ entry:
   store <8 x float> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v4f32_intrinsic(<4 x float> %v0, <4 x float> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v4f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.4s, v1.4s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v4f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.4s, v2.4s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x float> @llvm.vector.interleave2.v8f32(<4 x float> %v0, <4 x float> %v1)
+  store <8 x float> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v8f16(<8 x half> %v0, <8 x half> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v8f16:
@@ -290,6 +529,29 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store2_v8f16_intrinsic(<8 x half> %v0, <8 x half> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v8f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1 def $q0_q1
+; CHECK-LE-NEXT:    st2 { v0.8h, v1.8h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v8f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v1.8h, v1.8h
+; CHECK-BE-NEXT:    rev64 v0.8h, v0.8h
+; CHECK-BE-NEXT:    ext v2.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v1.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st2 { v1.8h, v2.8h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x half> @llvm.vector.interleave2.v16f16(<8 x half> %v0, <8 x half> %v1)
+  store <16 x half> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v2i32(<2 x i32> %v0, <2 x i32> %v1, <2 x i32> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2i32:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -313,6 +575,29 @@ entry:
   store <6 x i32> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store3_v2i32_intrinsic(<2 x i32> %v0, <2 x i32> %v1, <2 x i32> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    st3 { v0.2s, v1.2s, v2.2s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v2i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v4.2s, v2.2s
+; CHECK-BE-NEXT:    rev64 v3.2s, v1.2s
+; CHECK-BE-NEXT:    rev64 v2.2s, v0.2s
+; CHECK-BE-NEXT:    st3 { v2.2s, v3.2s, v4.2s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <6 x i32> @llvm.vector.interleave3.v6i32(<2 x i32> %v0, <2 x i32> %v1, <2 x i32> %v2)
+  store <6 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store3_v4i16(<4 x i16> %v0, <4 x i16> %v1, <4 x i16> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4i16:
@@ -338,6 +623,29 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store3_v4i16_intrinsic(<4 x i16> %v0, <4 x i16> %v1, <4 x i16> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    st3 { v0.4h, v1.4h, v2.4h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v4i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v4.4h, v2.4h
+; CHECK-BE-NEXT:    rev64 v3.4h, v1.4h
+; CHECK-BE-NEXT:    rev64 v2.4h, v0.4h
+; CHECK-BE-NEXT:    st3 { v2.4h, v3.4h, v4.4h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <12 x i16> @llvm.vector.interleave3.v12i16(<4 x i16> %v0, <4 x i16> %v1, <4 x i16> %v2)
+  store <12 x i16> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v8i8(<8 x i8> %v0, <8 x i8> %v1, <8 x i8> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v8i8:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -361,6 +669,29 @@ entry:
   store <24 x i8> %shuffle, ptr %ptr, align 1, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store3_v8i8_intrinsic(<8 x i8> %v0, <8 x i8> %v1, <8 x i8> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v8i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    st3 { v0.8b, v1.8b, v2.8b }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v8i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v4.8b, v2.8b
+; CHECK-BE-NEXT:    rev64 v3.8b, v1.8b
+; CHECK-BE-NEXT:    rev64 v2.8b, v0.8b
+; CHECK-BE-NEXT:    st3 { v2.8b, v3.8b, v4.8b }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <24 x i8> @llvm.vector.interleave3.v24i8(<8 x i8> %v0, <8 x i8> %v1, <8 x i8> %v2)
+  store <24 x i8> %interleave, ptr %ptr, align 1, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store3_v2f32(<2 x float> %v0, <2 x float> %v1, <2 x float> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2f32:
@@ -386,6 +717,29 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store3_v2f32_intrinsic(<2 x float> %v0, <2 x float> %v1, <2 x float> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    st3 { v0.2s, v1.2s, v2.2s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v2f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v4.2s, v2.2s
+; CHECK-BE-NEXT:    rev64 v3.2s, v1.2s
+; CHECK-BE-NEXT:    rev64 v2.2s, v0.2s
+; CHECK-BE-NEXT:    st3 { v2.2s, v3.2s, v4.2s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <6 x float> @llvm.vector.interleave3.v6f32(<2 x float> %v0, <2 x float> %v1, <2 x float> %v2)
+  store <6 x float> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v4f16(<4 x half> %v0, <4 x half> %v1, <4 x half> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4f16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -410,6 +764,29 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store3_v4f16_intrinsic(<4 x half> %v0, <4 x half> %v1, <4 x half> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2 def $d0_d1_d2
+; CHECK-LE-NEXT:    st3 { v0.4h, v1.4h, v2.4h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v4f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v4.4h, v2.4h
+; CHECK-BE-NEXT:    rev64 v3.4h, v1.4h
+; CHECK-BE-NEXT:    rev64 v2.4h, v0.4h
+; CHECK-BE-NEXT:    st3 { v2.4h, v3.4h, v4.4h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <12 x half> @llvm.vector.interleave3.v12f16(<4 x half> %v0, <4 x half> %v1, <4 x half> %v2)
+  store <12 x half> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v2i64(<2 x i64> %v0, <2 x i64> %v1, <2 x i64> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2i64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -433,6 +810,29 @@ entry:
   store <6 x i64> %shuffle, ptr %ptr, align 8, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store3_v2i64_intrinsic(<2 x i64> %v0, <2 x i64> %v1, <2 x i64> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2i64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.2d, v1.2d, v2.2d }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v2i64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.2d, v3.2d, v4.2d }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <6 x i64> @llvm.vector.interleave3.v6i64(<2 x i64> %v0, <2 x i64> %v1, <2 x i64> %v2)
+  store <6 x i64> %interleave, ptr %ptr, align 8, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store3_v4i32(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4i32:
@@ -461,6 +861,32 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store3_v4i32_intrinsic(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.4s, v1.4s, v2.4s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v4i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.4s, v2.4s
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.4s, v3.4s, v4.4s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <12 x i32> @llvm.vector.interleave3.v12i32(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2)
+  store <12 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v8i16(<8 x i16> %v0, <8 x i16> %v1, <8 x i16> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v8i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -487,6 +913,32 @@ entry:
   store <24 x i16> %shuffle, ptr %ptr, align 2, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store3_v8i16_intrinsic(<8 x i16> %v0, <8 x i16> %v1, <8 x i16> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v8i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.8h, v1.8h, v2.8h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v8i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.8h, v2.8h
+; CHECK-BE-NEXT:    rev64 v1.8h, v1.8h
+; CHECK-BE-NEXT:    rev64 v0.8h, v0.8h
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.8h, v3.8h, v4.8h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <24 x i16> @llvm.vector.interleave3.v24i16(<8 x i16> %v0, <8 x i16> %v1, <8 x i16> %v2)
+  store <24 x i16> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store3_v16i8(<16 x i8> %v0, <16 x i8> %v1, <16 x i8> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v16i8:
@@ -515,6 +967,32 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store3_v16i8_intrinsic(<16 x i8> %v0, <16 x i8> %v1, <16 x i8> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v16i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.16b, v1.16b, v2.16b }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v16i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.16b, v2.16b
+; CHECK-BE-NEXT:    rev64 v1.16b, v1.16b
+; CHECK-BE-NEXT:    rev64 v0.16b, v0.16b
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.16b, v3.16b, v4.16b }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <48 x i8> @llvm.vector.interleave3.v48i8(<16 x i8> %v0, <16 x i8> %v1, <16 x i8> %v2)
+  store <48 x i8> %interleave, ptr %ptr, align 1, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v2f64(<2 x double> %v0, <2 x double> %v1, <2 x double> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2f64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -538,6 +1016,29 @@ entry:
   store <6 x double> %shuffle, ptr %ptr, align 8, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store3_v2f64_intrinsic(<2 x double> %v0, <2 x double> %v1, <2 x double> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v2f64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.2d, v1.2d, v2.2d }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v2f64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.2d, v3.2d, v4.2d }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <6 x double> @llvm.vector.interleave3.v6f64(<2 x double> %v0, <2 x double> %v1, <2 x double> %v2)
+  store <6 x double> %interleave, ptr %ptr, align 8, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store3_v4f32(<4 x float> %v0, <4 x float> %v1, <4 x float> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4f32:
@@ -566,6 +1067,32 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store3_v4f32_intrinsic(<4 x float> %v0, <4 x float> %v1, <4 x float> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v4f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.4s, v1.4s, v2.4s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v4f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.4s, v2.4s
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.4s, v3.4s, v4.4s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <12 x float> @llvm.vector.interleave3.v12f32(<4 x float> %v0, <4 x float> %v1, <4 x float> %v2)
+  store <12 x float> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store3_v8f16(<8 x half> %v0, <8 x half> %v1, <8 x half> %v2, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store3_v8f16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -592,6 +1119,32 @@ entry:
   store <24 x half> %shuffle, ptr %ptr, align 2, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store3_v8f16_intrinsic(<8 x half> %v0, <8 x half> %v1, <8 x half> %v2, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store3_v8f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2 def $q0_q1_q2
+; CHECK-LE-NEXT:    st3 { v0.8h, v1.8h, v2.8h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store3_v8f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v2.8h, v2.8h
+; CHECK-BE-NEXT:    rev64 v1.8h, v1.8h
+; CHECK-BE-NEXT:    rev64 v0.8h, v0.8h
+; CHECK-BE-NEXT:    ext v4.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v2.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st3 { v2.8h, v3.8h, v4.8h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <24 x half> @llvm.vector.interleave3.v24f16(<8 x half> %v0, <8 x half> %v1, <8 x half> %v2)
+  store <24 x half> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
 
 ; Test conservative lowering of a st4 matching patterns
 
@@ -621,6 +1174,31 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v2i32_intrinsic(<2 x i32> %v0, <2 x i32> %v1, <2 x i32> %v2, <2 x i32> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d3 killed $d3 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    st4 { v0.2s, v1.2s, v2.2s, v3.2s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v2i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v6.2s, v3.2s
+; CHECK-BE-NEXT:    rev64 v5.2s, v2.2s
+; CHECK-BE-NEXT:    rev64 v4.2s, v1.2s
+; CHECK-BE-NEXT:    rev64 v3.2s, v0.2s
+; CHECK-BE-NEXT:    st4 { v3.2s, v4.2s, v5.2s, v6.2s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x i32> @llvm.vector.interleave4.v8i32(<2 x i32> %v0, <2 x i32> %v1, <2 x i32> %v2, <2 x i32> %v3)
+  store <8 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store4_v4i16(<4 x i16> %v0, <4 x i16> %v1, <4 x i16> %v2, <4 x i16> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -646,6 +1224,31 @@ entry:
   store <16 x i16> %shuffle, ptr %ptr, align 2, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store4_v4i16_intrinsic(<4 x i16> %v0, <4 x i16> %v1, <4 x i16> %v2, <4 x i16> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d3 killed $d3 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    st4 { v0.4h, v1.4h, v2.4h, v3.4h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v4i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v6.4h, v3.4h
+; CHECK-BE-NEXT:    rev64 v5.4h, v2.4h
+; CHECK-BE-NEXT:    rev64 v4.4h, v1.4h
+; CHECK-BE-NEXT:    rev64 v3.4h, v0.4h
+; CHECK-BE-NEXT:    st4 { v3.4h, v4.4h, v5.4h, v6.4h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x i16> @llvm.vector.interleave4.v16i16(<4 x i16> %v0, <4 x i16> %v1, <4 x i16> %v2, <4 x i16> %v3)
+  store <16 x i16> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store4_v8i8(<8 x i8> %v0, <8 x i8> %v1, <8 x i8> %v2, <8 x i8> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v8i8:
@@ -673,6 +1276,31 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v8i8_intrinsic(<8 x i8> %v0, <8 x i8> %v1, <8 x i8> %v2, <8 x i8> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v8i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d3 killed $d3 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    st4 { v0.8b, v1.8b, v2.8b, v3.8b }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v8i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v6.8b, v3.8b
+; CHECK-BE-NEXT:    rev64 v5.8b, v2.8b
+; CHECK-BE-NEXT:    rev64 v4.8b, v1.8b
+; CHECK-BE-NEXT:    rev64 v3.8b, v0.8b
+; CHECK-BE-NEXT:    st4 { v3.8b, v4.8b, v5.8b, v6.8b }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <32 x i8> @llvm.vector.interleave4.v32i8(<8 x i8> %v0, <8 x i8> %v1, <8 x i8> %v2, <8 x i8> %v3)
+  store <32 x i8> %interleave, ptr %ptr, align 1, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store4_v2f32(<2 x float> %v0, <2 x float> %v1, <2 x float> %v2, <2 x float> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2f32:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -698,6 +1326,31 @@ entry:
   store <8 x float> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store4_v2f32_intrinsic(<2 x float> %v0, <2 x float> %v1, <2 x float> %v2, <2 x float> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d3 killed $d3 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    st4 { v0.2s, v1.2s, v2.2s, v3.2s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v2f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v6.2s, v3.2s
+; CHECK-BE-NEXT:    rev64 v5.2s, v2.2s
+; CHECK-BE-NEXT:    rev64 v4.2s, v1.2s
+; CHECK-BE-NEXT:    rev64 v3.2s, v0.2s
+; CHECK-BE-NEXT:    st4 { v3.2s, v4.2s, v5.2s, v6.2s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x float> @llvm.vector.interleave4.v8f32(<2 x float> %v0, <2 x float> %v1, <2 x float> %v2, <2 x float> %v3)
+  store <8 x float> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store4_v4f16(<4 x half> %v0, <4 x half> %v1, <4 x half> %v2, <4 x half> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4f16:
@@ -725,6 +1378,31 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v4f16_intrinsic(<4 x half> %v0, <4 x half> %v1, <4 x half> %v2, <4 x half> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d3 killed $d3 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d2 killed $d2 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 killed $d0_d1_d2_d3 def $d0_d1_d2_d3
+; CHECK-LE-NEXT:    st4 { v0.4h, v1.4h, v2.4h, v3.4h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v4f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v6.4h, v3.4h
+; CHECK-BE-NEXT:    rev64 v5.4h, v2.4h
+; CHECK-BE-NEXT:    rev64 v4.4h, v1.4h
+; CHECK-BE-NEXT:    rev64 v3.4h, v0.4h
+; CHECK-BE-NEXT:    st4 { v3.4h, v4.4h, v5.4h, v6.4h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x half> @llvm.vector.interleave4.v16f16(<4 x half> %v0, <4 x half> %v1, <4 x half> %v2, <4 x half> %v3)
+  store <16 x half> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store4_v2i64(<2 x i64> %v0, <2 x i64> %v1, <2 x i64> %v2, <2 x i64> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2i64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -750,6 +1428,31 @@ entry:
   store <8 x i64> %shuffle, ptr %ptr, align 8, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store4_v2i64_intrinsic(<2 x i64> %v0, <2 x i64> %v1, <2 x i64> %v2, <2 x i64> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2i64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.2d, v1.2d, v2.2d, v3.2d }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v2i64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.2d, v4.2d, v5.2d, v6.2d }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x i64> @llvm.vector.interleave4.v8i64(<2 x i64> %v0, <2 x i64> %v1, <2 x i64> %v2, <2 x i64> %v3)
+  store <8 x i64> %interleave, ptr %ptr, align 8, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store4_v4i32(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2, <4 x i32> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4i32:
@@ -781,6 +1484,35 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v4i32_intrinsic(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2, <4 x i32> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4i32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v4i32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v3.4s, v3.4s
+; CHECK-BE-NEXT:    rev64 v2.4s, v2.4s
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.4s, v4.4s, v5.4s, v6.4s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x i32> @llvm.vector.interleave4.v16i32(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2, <4 x i32> %v3)
+  store <16 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store4_v8i16(<8 x i16> %v0, <8 x i16> %v1, <8 x i16> %v2, <8 x i16> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v8i16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -810,6 +1542,35 @@ entry:
   store <32 x i16> %shuffle, ptr %ptr, align 2, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store4_v8i16_intrinsic(<8 x i16> %v0, <8 x i16> %v1, <8 x i16> %v2, <8 x i16> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v8i16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v8i16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v3.8h, v3.8h
+; CHECK-BE-NEXT:    rev64 v2.8h, v2.8h
+; CHECK-BE-NEXT:    rev64 v1.8h, v1.8h
+; CHECK-BE-NEXT:    rev64 v0.8h, v0.8h
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.8h, v4.8h, v5.8h, v6.8h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <32 x i16> @llvm.vector.interleave4.v32i16(<8 x i16> %v0, <8 x i16> %v1, <8 x i16> %v2, <8 x i16> %v3)
+  store <32 x i16> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store4_v16i8(<16 x i8> %v0, <16 x i8> %v1, <16 x i8> %v2, <16 x i8> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v16i8:
@@ -841,6 +1602,35 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v16i8_intrinsic(<16 x i8> %v0, <16 x i8> %v1, <16 x i8> %v2, <16 x i8> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v16i8_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.16b, v1.16b, v2.16b, v3.16b }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v16i8_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v3.16b, v3.16b
+; CHECK-BE-NEXT:    rev64 v2.16b, v2.16b
+; CHECK-BE-NEXT:    rev64 v1.16b, v1.16b
+; CHECK-BE-NEXT:    rev64 v0.16b, v0.16b
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.16b, v4.16b, v5.16b, v6.16b }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <64 x i8> @llvm.vector.interleave4.v64i8(<16 x i8> %v0, <16 x i8> %v1, <16 x i8> %v2, <16 x i8> %v3)
+  store <64 x i8> %interleave, ptr %ptr, align 1, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store4_v2f64(<2 x double> %v0, <2 x double> %v1, <2 x double> %v2, <2 x double> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2f64:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -866,6 +1656,31 @@ entry:
   store <8 x double> %shuffle, ptr %ptr, align 8, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store4_v2f64_intrinsic(<2 x double> %v0, <2 x double> %v1, <2 x double> %v2, <2 x double> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v2f64_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.2d, v1.2d, v2.2d, v3.2d }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v2f64_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.2d, v4.2d, v5.2d, v6.2d }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <8 x double> @llvm.vector.interleave4.v8f64(<2 x double> %v0, <2 x double> %v1, <2 x double> %v2, <2 x double> %v3)
+  store <8 x double> %interleave, ptr %ptr, align 8, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store4_v4f32(<4 x float> %v0, <4 x float> %v1, <4 x float> %v2, <4 x float> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4f32:
@@ -897,6 +1712,35 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v4f32_intrinsic(<4 x float> %v0, <4 x float> %v1, <4 x float> %v2, <4 x float> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v4f32_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v4f32_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v3.4s, v3.4s
+; CHECK-BE-NEXT:    rev64 v2.4s, v2.4s
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.4s, v4.4s, v5.4s, v6.4s }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <16 x float> @llvm.vector.interleave4.v16f32(<4 x float> %v0, <4 x float> %v1, <4 x float> %v2, <4 x float> %v3)
+  store <16 x float> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store4_v8f16(<8 x half> %v0, <8 x half> %v1, <8 x half> %v2, <8 x half> %v3, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store4_v8f16:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -927,6 +1771,35 @@ entry:
   ret void
 }
 
+define void @test_stnp_interleaved_store4_v8f16_intrinsic(<8 x half> %v0, <8 x half> %v1, <8 x half> %v2, <8 x half> %v3, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store4_v8f16_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $q3 killed $q3 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q2 killed $q2 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q1 killed $q1 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    // kill: def $q0 killed $q0 killed $q0_q1_q2_q3 def $q0_q1_q2_q3
+; CHECK-LE-NEXT:    st4 { v0.8h, v1.8h, v2.8h, v3.8h }, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store4_v8f16_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v3.8h, v3.8h
+; CHECK-BE-NEXT:    rev64 v2.8h, v2.8h
+; CHECK-BE-NEXT:    rev64 v1.8h, v1.8h
+; CHECK-BE-NEXT:    rev64 v0.8h, v0.8h
+; CHECK-BE-NEXT:    ext v6.16b, v3.16b, v3.16b, #8
+; CHECK-BE-NEXT:    ext v5.16b, v2.16b, v2.16b, #8
+; CHECK-BE-NEXT:    ext v4.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v3.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    st4 { v3.8h, v4.8h, v5.8h, v6.8h }, [x0]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <32 x half> @llvm.vector.interleave4.v32f16(<8 x half> %v0, <8 x half> %v1, <8 x half> %v2, <8 x half> %v3)
+  store <32 x half> %interleave, ptr %ptr, align 2, !nontemporal !0
+  ret void
+}
+
+
 define void @test_stnp_interleaved_store2_v3i32_non_pow2_elt_count(<3 x i32> %v0, <3 x i32> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v3i32_non_pow2_elt_count:
 ; CHECK-LE:       // %bb.0: // %entry
@@ -955,6 +1828,42 @@ entry:
   store <6 x i32> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v3i32_non_pow2_elt_count_intrinsic(<3 x i32> %v0, <3 x i32> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v3i32_non_pow2_elt_count_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    zip1 v2.4s, v0.4s, v1.4s
+; CHECK-LE-NEXT:    zip2 v0.4s, v0.4s, v1.4s
+; CHECK-LE-NEXT:    mov d3, v2.d[1]
+; CHECK-LE-NEXT:    str d0, [x0, #16]
+; CHECK-LE-NEXT:    stnp d2, d3, [x0]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v3i32_non_pow2_elt_count_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v1.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v0.4s, v0.4s
+; CHECK-BE-NEXT:    ext v1.16b, v1.16b, v1.16b, #8
+; CHECK-BE-NEXT:    ext v0.16b, v0.16b, v0.16b, #8
+; CHECK-BE-NEXT:    zip2 v2.4s, v0.4s, v1.4s
+; CHECK-BE-NEXT:    zip1 v0.4s, v0.4s, v1.4s
+; CHECK-BE-NEXT:    rev64 v1.4s, v2.4s
+; CHECK-BE-NEXT:    st1 { v0.4s }, [x0]
+; CHECK-BE-NEXT:    str d1, [x0, #16]
+; CHECK-BE-NEXT:    ret
+entry:
+  %v0.lo = call <2 x i32> @llvm.vector.extract.v2i32.v3i32(<3 x i32> %v0, i64 0)
+  %v1.lo = call <2 x i32> @llvm.vector.extract.v2i32.v3i32(<3 x i32> %v1, i64 0)
+  %interleave.lo = call <4 x i32> @llvm.vector.interleave2.v4i32(<2 x i32> %v0.lo, <2 x i32> %v1.lo)
+  %interleave.base = call <6 x i32> @llvm.vector.insert.v6i32.v4i32(<6 x i32> poison, <4 x i32> %interleave.lo, i64 0)
+  %v0.tail = extractelement <3 x i32> %v0, i64 2
+  %interleave.tail0 = insertelement <6 x i32> %interleave.base, i32 %v0.tail, i64 4
+  %v1.tail = extractelement <3 x i32> %v1, i64 2
+  %interleave = insertelement <6 x i32> %interleave.tail0, i32 %v1.tail, i64 5
+  store <6 x i32> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 define void @test_stnp_interleaved_store2_v2i24_non_pow2_elt_size(<2 x i24> %v0, <2 x i24> %v1, ptr %ptr) {
 ; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2i24_non_pow2_elt_size:
@@ -1010,5 +1919,64 @@ entry:
   store <4 x i24> %shuffle, ptr %ptr, align 4, !nontemporal !0
   ret void
 }
+
+define void @test_stnp_interleaved_store2_v2i24_non_pow2_elt_size_intrinsic(<2 x i24> %v0, <2 x i24> %v1, ptr %ptr) {
+; CHECK-LE-LABEL: test_stnp_interleaved_store2_v2i24_non_pow2_elt_size_intrinsic:
+; CHECK-LE:       // %bb.0: // %entry
+; CHECK-LE-NEXT:    // kill: def $d0 killed $d0 def $q0
+; CHECK-LE-NEXT:    mov v2.16b, v0.16b
+; CHECK-LE-NEXT:    // kill: def $d1 killed $d1 def $q1
+; CHECK-LE-NEXT:    fmov w9, s0
+; CHECK-LE-NEXT:    str h0, [x0]
+; CHECK-LE-NEXT:    mov w8, v1.s[1]
+; CHECK-LE-NEXT:    mov v2.d[1], v1.d[0]
+; CHECK-LE-NEXT:    lsr w9, w9, #16
+; CHECK-LE-NEXT:    strb w9, [x0, #2]
+; CHECK-LE-NEXT:    lsr w9, w8, #16
+; CHECK-LE-NEXT:    sturh w8, [x0, #9]
+; CHECK-LE-NEXT:    rev64 v3.4s, v2.4s
+; CHECK-LE-NEXT:    strb w9, [x0, #11]
+; CHECK-LE-NEXT:    uzp1 v2.4s, v2.4s, v3.4s
+; CHECK-LE-NEXT:    mov w10, v2.s[2]
+; CHECK-LE-NEXT:    mov w11, v2.s[1]
+; CHECK-LE-NEXT:    lsr w8, w10, #16
+; CHECK-LE-NEXT:    lsr w9, w11, #16
+; CHECK-LE-NEXT:    strh w10, [x0, #6]
+; CHECK-LE-NEXT:    sturh w11, [x0, #3]
+; CHECK-LE-NEXT:    strb w8, [x0, #8]
+; CHECK-LE-NEXT:    strb w9, [x0, #5]
+; CHECK-LE-NEXT:    ret
+;
+; CHECK-BE-LABEL: test_stnp_interleaved_store2_v2i24_non_pow2_elt_size_intrinsic:
+; CHECK-BE:       // %bb.0: // %entry
+; CHECK-BE-NEXT:    rev64 v0.2s, v0.2s
+; CHECK-BE-NEXT:    rev64 v1.2s, v1.2s
+; CHECK-BE-NEXT:    mov v2.16b, v0.16b
+; CHECK-BE-NEXT:    fmov w9, s0
+; CHECK-BE-NEXT:    mov w8, v1.s[1]
+; CHECK-BE-NEXT:    stur b0, [x0, #2]
+; CHECK-BE-NEXT:    mov v2.d[1], v1.d[0]
+; CHECK-BE-NEXT:    lsr w9, w9, #8
+; CHECK-BE-NEXT:    strb w8, [x0, #11]
+; CHECK-BE-NEXT:    strh w9, [x0]
+; CHECK-BE-NEXT:    lsr w9, w8, #8
+; CHECK-BE-NEXT:    rev64 v3.4s, v2.4s
+; CHECK-BE-NEXT:    sturh w9, [x0, #9]
+; CHECK-BE-NEXT:    uzp1 v2.4s, v2.4s, v3.4s
+; CHECK-BE-NEXT:    mov w10, v2.s[2]
+; CHECK-BE-NEXT:    mov w11, v2.s[1]
+; CHECK-BE-NEXT:    lsr w8, w10, #8
+; CHECK-BE-NEXT:    lsr w9, w11, #8
+; CHECK-BE-NEXT:    strb w10, [x0, #8]
+; CHECK-BE-NEXT:    strb w11, [x0, #5]
+; CHECK-BE-NEXT:    strh w8, [x0, #6]
+; CHECK-BE-NEXT:    sturh w9, [x0, #3]
+; CHECK-BE-NEXT:    ret
+entry:
+  %interleave = call <4 x i24> @llvm.vector.interleave2.v4i24(<2 x i24> %v0, <2 x i24> %v1)
+  store <4 x i24> %interleave, ptr %ptr, align 4, !nontemporal !0
+  ret void
+}
+
 
 !0 = !{ i32 1 }

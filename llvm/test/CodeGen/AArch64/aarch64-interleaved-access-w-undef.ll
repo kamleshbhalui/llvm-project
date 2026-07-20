@@ -43,6 +43,27 @@ BB:
   ret void
 }
 
+define void @f_undef_15_intrinsic(<8 x i64> %a, ptr %dst) {
+; CHECK-LABEL: f_undef_15_intrinsic:
+; CHECK:       // %bb.0: // %BB
+; CHECK-NEXT:    dup v0.2d, v0.d[0]
+; CHECK-NEXT:    mov x8, x0
+; CHECK-NEXT:    mov v1.16b, v0.16b
+; CHECK-NEXT:    st2 { v0.2d, v1.2d }, [x8], #32
+; CHECK-NEXT:    st2 { v0.2d, v1.2d }, [x8]
+; CHECK-NEXT:    add x8, x0, #64
+; CHECK-NEXT:    st2 { v0.2d, v1.2d }, [x8]
+; CHECK-NEXT:    add x8, x0, #96
+; CHECK-NEXT:    st2 { v0.2d, v1.2d }, [x8]
+; CHECK-NEXT:    ret
+BB:
+  %I = call <16 x i64> @llvm.vector.interleave2.v16i64(<8 x i64> %a, <8 x i64> %a)
+  %S = shufflevector <16 x i64> %I, <16 x i64> poison, <16 x i32> <i32 0, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef, i32 undef>
+  store <16 x i64> %S, ptr %dst, align 64
+  ret void
+}
+
+
 define void @f_undef_1(<8 x i64> %a, ptr %dst) {
 ; CHECK-LABEL: f_undef_1:
 ; CHECK:       // %bb.0: // %BB
@@ -68,6 +89,32 @@ BB:
   ret void
 }
 
+define void @f_undef_1_intrinsic(<8 x i64> %a, ptr %dst) {
+; CHECK-LABEL: f_undef_1_intrinsic:
+; CHECK:       // %bb.0: // %BB
+; CHECK-NEXT:    mov v16.16b, v0.16b
+; CHECK-NEXT:    mov v5.16b, v2.16b
+; CHECK-NEXT:    // kill: def $q1 killed $q1 def $q1_q2
+; CHECK-NEXT:    // kill: def $q3 killed $q3 def $q3_q4
+; CHECK-NEXT:    mov x8, x0
+; CHECK-NEXT:    mov v2.16b, v1.16b
+; CHECK-NEXT:    mov v4.16b, v3.16b
+; CHECK-NEXT:    mov v17.16b, v16.16b
+; CHECK-NEXT:    mov v6.16b, v5.16b
+; CHECK-NEXT:    st2 { v16.2d, v17.2d }, [x8], #32
+; CHECK-NEXT:    st2 { v1.2d, v2.2d }, [x8]
+; CHECK-NEXT:    add x8, x0, #64
+; CHECK-NEXT:    st2 { v5.2d, v6.2d }, [x8]
+; CHECK-NEXT:    add x8, x0, #96
+; CHECK-NEXT:    st2 { v3.2d, v4.2d }, [x8]
+; CHECK-NEXT:    ret
+BB:
+  %I = call <16 x i64> @llvm.vector.interleave2.v16i64(<8 x i64> %a, <8 x i64> %a)
+  store <16 x i64> %I, ptr %dst, align 64
+  ret void
+}
+
+
 ; noundefs and undefs should have the same results.
 define void @noundefs(<8 x i32> %a, <8 x i32> %b, ptr %dst) {
 ; CHECK-LABEL: noundefs:
@@ -85,6 +132,23 @@ BB:
   ret void
 }
 
+define void @noundefs_intrinsic(<8 x i32> %a, <8 x i32> %b, ptr %dst) {
+; CHECK-LABEL: noundefs_intrinsic:
+; CHECK:       // %bb.0: // %BB
+; CHECK-NEXT:    mov v5.16b, v2.16b
+; CHECK-NEXT:    // kill: def $q3 killed $q3 def $q2_q3
+; CHECK-NEXT:    mov v4.16b, v0.16b
+; CHECK-NEXT:    mov v2.16b, v1.16b
+; CHECK-NEXT:    st2 { v4.4s, v5.4s }, [x0], #32
+; CHECK-NEXT:    st2 { v2.4s, v3.4s }, [x0]
+; CHECK-NEXT:    ret
+BB:
+  %I = call <16 x i32> @llvm.vector.interleave2.v16i32(<8 x i32> %a, <8 x i32> %b)
+  store <16 x i32> %I, ptr %dst, align 64
+  ret void
+}
+
+
 define void @undefs(<8 x i32> %a, <8 x i32> %b, ptr %dst) {
 ; CHECK-LABEL: undefs:
 ; CHECK:       // %bb.0: // %BB
@@ -101,3 +165,18 @@ BB:
   ret void
 }
 
+define void @undefs_intrinsic(<8 x i32> %a, <8 x i32> %b, ptr %dst) {
+; CHECK-LABEL: undefs_intrinsic:
+; CHECK:       // %bb.0: // %BB
+; CHECK-NEXT:    mov v5.16b, v2.16b
+; CHECK-NEXT:    // kill: def $q3 killed $q3 def $q2_q3
+; CHECK-NEXT:    mov v4.16b, v0.16b
+; CHECK-NEXT:    mov v2.16b, v1.16b
+; CHECK-NEXT:    st2 { v4.4s, v5.4s }, [x0], #32
+; CHECK-NEXT:    st2 { v2.4s, v3.4s }, [x0]
+; CHECK-NEXT:    ret
+BB:
+  %I = call <16 x i32> @llvm.vector.interleave2.v16i32(<8 x i32> %a, <8 x i32> %b)
+  store <16 x i32> %I, ptr %dst, align 64
+  ret void
+}

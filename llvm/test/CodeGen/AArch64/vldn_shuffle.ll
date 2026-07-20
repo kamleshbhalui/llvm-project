@@ -41,13 +41,55 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
-define void @vld3(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
-; CHECK-LABEL: vld3:
+define void @vld2_intrinsic(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld2_intrinsic:
 ; CHECK:       .Lfunc_begin1:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    mov x8, xzr
 ; CHECK-NEXT:  .LBB1_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    ld2 { v0.4s, v1.4s }, [x0], #32
+; CHECK-NEXT:    fmul v2.4s, v0.4s, v0.4s
+; CHECK-NEXT:    fmla v2.4s, v1.4s, v1.4s
+; CHECK-NEXT:    str q2, [x1, x8]
+; CHECK-NEXT:    add x8, x8, #16
+; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
+; CHECK-NEXT:    b.ne .LBB1_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = shl i64 %index, 1
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %next.gep19 = getelementptr float, ptr %pDst, i64 %index
+  %wide.vec = load <8 x float>, ptr %next.gep, align 4
+  %1 = call { <4 x float>, <4 x float> } @llvm.vector.deinterleave2.v8f32(<8 x float> %wide.vec)
+  %2 = extractvalue { <4 x float>, <4 x float> } %1, 0
+  %3 = extractvalue { <4 x float>, <4 x float> } %1, 1
+  %4 = fmul fast <4 x float> %2, %2
+  %5 = fmul fast <4 x float> %3, %3
+  %6 = fadd fast <4 x float> %5, %4
+  store <4 x float> %6, ptr %next.gep19, align 4
+  %index.next = add i64 %index, 4
+  %7 = icmp eq i64 %index.next, 1024
+  br i1 %7, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
+define void @vld3(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld3:
+; CHECK:       .Lfunc_begin2:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB2_1: // %vector.body
 ; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
 ; CHECK-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0], #48
 ; CHECK-NEXT:    fmul v3.4s, v0.4s, v0.4s
@@ -56,7 +98,7 @@ define void @vld3(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32
 ; CHECK-NEXT:    str q3, [x1, x8]
 ; CHECK-NEXT:    add x8, x8, #16
 ; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
-; CHECK-NEXT:    b.ne .LBB1_1
+; CHECK-NEXT:    b.ne .LBB2_1
 ; CHECK-NEXT:  // %bb.2: // %while.end
 ; CHECK-NEXT:    ret
 entry:
@@ -85,13 +127,59 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
-define void @vld4(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
-; CHECK-LABEL: vld4:
-; CHECK:       .Lfunc_begin2:
+define void @vld3_intrinsic(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld3_intrinsic:
+; CHECK:       .Lfunc_begin3:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    mov x8, xzr
-; CHECK-NEXT:  .LBB2_1: // %vector.body
+; CHECK-NEXT:  .LBB3_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0], #48
+; CHECK-NEXT:    fmul v3.4s, v0.4s, v0.4s
+; CHECK-NEXT:    fmla v3.4s, v1.4s, v1.4s
+; CHECK-NEXT:    fmla v3.4s, v2.4s, v2.4s
+; CHECK-NEXT:    str q3, [x1, x8]
+; CHECK-NEXT:    add x8, x8, #16
+; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
+; CHECK-NEXT:    b.ne .LBB3_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = mul i64 %index, 3
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %next.gep23 = getelementptr float, ptr %pDst, i64 %index
+  %wide.vec = load <12 x float>, ptr %next.gep, align 4
+  %1 = call { <4 x float>, <4 x float>, <4 x float> } @llvm.vector.deinterleave3.v12f32(<12 x float> %wide.vec)
+  %2 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %1, 0
+  %3 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %1, 1
+  %4 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %1, 2
+  %5 = fmul fast <4 x float> %2, %2
+  %6 = fmul fast <4 x float> %3, %3
+  %7 = fadd fast <4 x float> %6, %5
+  %8 = fmul fast <4 x float> %4, %4
+  %9 = fadd fast <4 x float> %7, %8
+  store <4 x float> %9, ptr %next.gep23, align 4
+  %index.next = add i64 %index, 4
+  %10 = icmp eq i64 %index.next, 1024
+  br i1 %10, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
+define void @vld4(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld4:
+; CHECK:       .Lfunc_begin4:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB4_1: // %vector.body
 ; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
 ; CHECK-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0], #64
 ; CHECK-NEXT:    add x9, x1, x8
@@ -102,7 +190,7 @@ define void @vld4(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32
 ; CHECK-NEXT:    fmul v5.4s, v2.4s, v2.4s
 ; CHECK-NEXT:    fmla v5.4s, v3.4s, v3.4s
 ; CHECK-NEXT:    st2 { v4.4s, v5.4s }, [x9]
-; CHECK-NEXT:    b.ne .LBB2_1
+; CHECK-NEXT:    b.ne .LBB4_1
 ; CHECK-NEXT:  // %bb.2: // %while.end
 ; CHECK-NEXT:    ret
 entry:
@@ -135,13 +223,65 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
-define void @twosrc(ptr nocapture readonly %pSrc, ptr nocapture readonly %pSrc2, ptr noalias nocapture %pDst, i32 %numSamples) {
-; CHECK-LABEL: twosrc:
-; CHECK:       .Lfunc_begin3:
+define void @vld4_intrinsic(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld4_intrinsic:
+; CHECK:       .Lfunc_begin5:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    mov x8, xzr
-; CHECK-NEXT:  .LBB3_1: // %vector.body
+; CHECK-NEXT:  .LBB5_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0], #64
+; CHECK-NEXT:    add x9, x1, x8
+; CHECK-NEXT:    add x8, x8, #32
+; CHECK-NEXT:    cmp x8, #2, lsl #12 // =8192
+; CHECK-NEXT:    fmul v4.4s, v0.4s, v0.4s
+; CHECK-NEXT:    fmla v4.4s, v1.4s, v1.4s
+; CHECK-NEXT:    fmul v5.4s, v2.4s, v2.4s
+; CHECK-NEXT:    fmla v5.4s, v3.4s, v3.4s
+; CHECK-NEXT:    st2 { v4.4s, v5.4s }, [x9]
+; CHECK-NEXT:    b.ne .LBB5_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = shl i64 %index, 2
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %1 = shl i64 %index, 1
+  %wide.vec = load <16 x float>, ptr %next.gep, align 4
+  %2 = call { <4 x float>, <4 x float>, <4 x float>, <4 x float> } @llvm.vector.deinterleave4.v16f32(<16 x float> %wide.vec)
+  %3 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 0
+  %4 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 1
+  %5 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 2
+  %6 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 3
+  %7 = fmul fast <4 x float> %3, %3
+  %8 = fmul fast <4 x float> %4, %4
+  %9 = fadd fast <4 x float> %8, %7
+  %10 = fmul fast <4 x float> %5, %5
+  %11 = fmul fast <4 x float> %6, %6
+  %12 = fadd fast <4 x float> %11, %10
+  %13 = getelementptr inbounds float, ptr %pDst, i64 %1
+  %interleaved.vec = call <8 x float> @llvm.vector.interleave2.v8f32(<4 x float> %9, <4 x float> %12)
+  store <8 x float> %interleaved.vec, ptr %13, align 4
+  %index.next = add i64 %index, 4
+  %14 = icmp eq i64 %index.next, 1024
+  br i1 %14, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
+define void @twosrc(ptr nocapture readonly %pSrc, ptr nocapture readonly %pSrc2, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: twosrc:
+; CHECK:       .Lfunc_begin6:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB6_1: // %vector.body
 ; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
 ; CHECK-NEXT:    add x9, x0, x8
 ; CHECK-NEXT:    add x10, x1, x8
@@ -152,7 +292,7 @@ define void @twosrc(ptr nocapture readonly %pSrc, ptr nocapture readonly %pSrc2,
 ; CHECK-NEXT:    fmul v4.4s, v2.4s, v0.4s
 ; CHECK-NEXT:    fmla v4.4s, v1.4s, v3.4s
 ; CHECK-NEXT:    str q4, [x2], #16
-; CHECK-NEXT:    b.ne .LBB3_1
+; CHECK-NEXT:    b.ne .LBB6_1
 ; CHECK-NEXT:  // %bb.2: // %while.end
 ; CHECK-NEXT:    ret
 entry:
@@ -181,13 +321,64 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
-define void @vld2_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
-; CHECK-LABEL: vld2_multiuse:
-; CHECK:       .Lfunc_begin4:
+define void @twosrc_intrinsic(ptr nocapture readonly %pSrc, ptr nocapture readonly %pSrc2, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: twosrc_intrinsic:
+; CHECK:       .Lfunc_begin7:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    mov x8, xzr
-; CHECK-NEXT:  .LBB4_1: // %vector.body
+; CHECK-NEXT:  .LBB7_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    add x9, x0, x8
+; CHECK-NEXT:    add x10, x1, x8
+; CHECK-NEXT:    add x8, x8, #32
+; CHECK-NEXT:    ld2 { v0.4s, v1.4s }, [x9]
+; CHECK-NEXT:    cmp x8, #2, lsl #12 // =8192
+; CHECK-NEXT:    ld2 { v2.4s, v3.4s }, [x10]
+; CHECK-NEXT:    fmul v4.4s, v2.4s, v0.4s
+; CHECK-NEXT:    fmla v4.4s, v1.4s, v3.4s
+; CHECK-NEXT:    str q4, [x2], #16
+; CHECK-NEXT:    b.ne .LBB7_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = shl i64 %index, 1
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %1 = shl i64 %index, 1
+  %next.gep23 = getelementptr float, ptr %pSrc2, i64 %1
+  %next.gep24 = getelementptr float, ptr %pDst, i64 %index
+  %wide.vec = load <8 x float>, ptr %next.gep, align 4
+  %wide.vec26 = load <8 x float>, ptr %next.gep23, align 4
+  %2 = call { <4 x float>, <4 x float> } @llvm.vector.deinterleave2.v8f32(<8 x float> %wide.vec)
+  %3 = extractvalue { <4 x float>, <4 x float> } %2, 0
+  %4 = extractvalue { <4 x float>, <4 x float> } %2, 1
+  %5 = call { <4 x float>, <4 x float> } @llvm.vector.deinterleave2.v8f32(<8 x float> %wide.vec26)
+  %6 = extractvalue { <4 x float>, <4 x float> } %5, 0
+  %7 = extractvalue { <4 x float>, <4 x float> } %5, 1
+  %8 = fmul fast <4 x float> %6, %3
+  %9 = fmul fast <4 x float> %7, %4
+  %10 = fadd fast <4 x float> %9, %8
+  store <4 x float> %10, ptr %next.gep24, align 4
+  %index.next = add i64 %index, 4
+  %11 = icmp eq i64 %index.next, 1024
+  br i1 %11, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
+define void @vld2_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld2_multiuse:
+; CHECK:       .Lfunc_begin8:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB8_1: // %vector.body
 ; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
 ; CHECK-NEXT:    ld2 { v0.4s, v1.4s }, [x0], #32
 ; CHECK-NEXT:    fmul v2.4s, v0.4s, v0.4s
@@ -195,7 +386,7 @@ define void @vld2_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %
 ; CHECK-NEXT:    str q2, [x1, x8]
 ; CHECK-NEXT:    add x8, x8, #16
 ; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
-; CHECK-NEXT:    b.ne .LBB4_1
+; CHECK-NEXT:    b.ne .LBB8_1
 ; CHECK-NEXT:  // %bb.2: // %while.end
 ; CHECK-NEXT:    ret
 entry:
@@ -220,13 +411,55 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
-define void @vld3_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
-; CHECK-LABEL: vld3_multiuse:
-; CHECK:       .Lfunc_begin5:
+define void @vld2_multiuse_intrinsic(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld2_multiuse_intrinsic:
+; CHECK:       .Lfunc_begin9:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    mov x8, xzr
-; CHECK-NEXT:  .LBB5_1: // %vector.body
+; CHECK-NEXT:  .LBB9_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    ld2 { v0.4s, v1.4s }, [x0], #32
+; CHECK-NEXT:    fmul v2.4s, v0.4s, v0.4s
+; CHECK-NEXT:    fmla v2.4s, v1.4s, v1.4s
+; CHECK-NEXT:    str q2, [x1, x8]
+; CHECK-NEXT:    add x8, x8, #16
+; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
+; CHECK-NEXT:    b.ne .LBB9_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = shl i64 %index, 1
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %next.gep19 = getelementptr float, ptr %pDst, i64 %index
+  %wide.vec = load <8 x float>, ptr %next.gep, align 4
+  %1 = call { <4 x float>, <4 x float> } @llvm.vector.deinterleave2.v8f32(<8 x float> %wide.vec)
+  %2 = extractvalue { <4 x float>, <4 x float> } %1, 0
+  %3 = extractvalue { <4 x float>, <4 x float> } %1, 1
+  %4 = fmul fast <4 x float> %2, %2
+  %5 = fmul fast <4 x float> %3, %3
+  %6 = fadd fast <4 x float> %5, %4
+  store <4 x float> %6, ptr %next.gep19, align 4
+  %index.next = add i64 %index, 4
+  %7 = icmp eq i64 %index.next, 1024
+  br i1 %7, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
+define void @vld3_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld3_multiuse:
+; CHECK:       .Lfunc_begin10:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB10_1: // %vector.body
 ; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
 ; CHECK-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0], #48
 ; CHECK-NEXT:    fmul v3.4s, v0.4s, v0.4s
@@ -235,7 +468,7 @@ define void @vld3_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %
 ; CHECK-NEXT:    str q3, [x1, x8]
 ; CHECK-NEXT:    add x8, x8, #16
 ; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
-; CHECK-NEXT:    b.ne .LBB5_1
+; CHECK-NEXT:    b.ne .LBB10_1
 ; CHECK-NEXT:  // %bb.2: // %while.end
 ; CHECK-NEXT:    ret
 entry:
@@ -262,13 +495,59 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
-define void @vld4_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
-; CHECK-LABEL: vld4_multiuse:
-; CHECK:       .Lfunc_begin6:
+define void @vld3_multiuse_intrinsic(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld3_multiuse_intrinsic:
+; CHECK:       .Lfunc_begin11:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    mov x8, xzr
-; CHECK-NEXT:  .LBB6_1: // %vector.body
+; CHECK-NEXT:  .LBB11_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    ld3 { v0.4s, v1.4s, v2.4s }, [x0], #48
+; CHECK-NEXT:    fmul v3.4s, v0.4s, v0.4s
+; CHECK-NEXT:    fmla v3.4s, v1.4s, v1.4s
+; CHECK-NEXT:    fmla v3.4s, v2.4s, v2.4s
+; CHECK-NEXT:    str q3, [x1, x8]
+; CHECK-NEXT:    add x8, x8, #16
+; CHECK-NEXT:    cmp x8, #1, lsl #12 // =4096
+; CHECK-NEXT:    b.ne .LBB11_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = mul i64 %index, 3
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %next.gep23 = getelementptr float, ptr %pDst, i64 %index
+  %wide.vec = load <12 x float>, ptr %next.gep, align 4
+  %1 = call { <4 x float>, <4 x float>, <4 x float> } @llvm.vector.deinterleave3.v12f32(<12 x float> %wide.vec)
+  %2 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %1, 0
+  %3 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %1, 1
+  %4 = extractvalue { <4 x float>, <4 x float>, <4 x float> } %1, 2
+  %5 = fmul fast <4 x float> %2, %2
+  %6 = fmul fast <4 x float> %3, %3
+  %7 = fadd fast <4 x float> %6, %5
+  %8 = fmul fast <4 x float> %4, %4
+  %9 = fadd fast <4 x float> %7, %8
+  store <4 x float> %9, ptr %next.gep23, align 4
+  %index.next = add i64 %index, 4
+  %10 = icmp eq i64 %index.next, 1024
+  br i1 %10, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
+define void @vld4_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld4_multiuse:
+; CHECK:       .Lfunc_begin12:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB12_1: // %vector.body
 ; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
 ; CHECK-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0], #64
 ; CHECK-NEXT:    add x9, x1, x8
@@ -279,7 +558,7 @@ define void @vld4_multiuse(ptr nocapture readonly %pSrc, ptr noalias nocapture %
 ; CHECK-NEXT:    fmul v5.4s, v2.4s, v2.4s
 ; CHECK-NEXT:    fmla v5.4s, v3.4s, v3.4s
 ; CHECK-NEXT:    st2 { v4.4s, v5.4s }, [x9]
-; CHECK-NEXT:    b.ne .LBB6_1
+; CHECK-NEXT:    b.ne .LBB12_1
 ; CHECK-NEXT:  // %bb.2: // %while.end
 ; CHECK-NEXT:    ret
 entry:
@@ -309,11 +588,63 @@ while.end:                                        ; preds = %vector.body
   ret void
 }
 
+define void @vld4_multiuse_intrinsic(ptr nocapture readonly %pSrc, ptr noalias nocapture %pDst, i32 %numSamples) {
+; CHECK-LABEL: vld4_multiuse_intrinsic:
+; CHECK:       .Lfunc_begin13:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0: // %entry
+; CHECK-NEXT:    mov x8, xzr
+; CHECK-NEXT:  .LBB13_1: // %vector.body
+; CHECK-NEXT:    // =>This Inner Loop Header: Depth=1
+; CHECK-NEXT:    ld4 { v0.4s, v1.4s, v2.4s, v3.4s }, [x0], #64
+; CHECK-NEXT:    add x9, x1, x8
+; CHECK-NEXT:    add x8, x8, #32
+; CHECK-NEXT:    cmp x8, #2, lsl #12 // =8192
+; CHECK-NEXT:    fmul v4.4s, v0.4s, v0.4s
+; CHECK-NEXT:    fmla v4.4s, v1.4s, v1.4s
+; CHECK-NEXT:    fmul v5.4s, v2.4s, v2.4s
+; CHECK-NEXT:    fmla v5.4s, v3.4s, v3.4s
+; CHECK-NEXT:    st2 { v4.4s, v5.4s }, [x9]
+; CHECK-NEXT:    b.ne .LBB13_1
+; CHECK-NEXT:  // %bb.2: // %while.end
+; CHECK-NEXT:    ret
+entry:
+  br label %vector.body
+
+vector.body:                                      ; preds = %vector.body, %entry
+  %index = phi i64 [ 0, %entry ], [ %index.next, %vector.body ]
+  %0 = shl i64 %index, 2
+  %next.gep = getelementptr float, ptr %pSrc, i64 %0
+  %1 = shl i64 %index, 1
+  %wide.vec = load <16 x float>, ptr %next.gep, align 4
+  %2 = call { <4 x float>, <4 x float>, <4 x float>, <4 x float> } @llvm.vector.deinterleave4.v16f32(<16 x float> %wide.vec)
+  %3 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 0
+  %4 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 1
+  %5 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 2
+  %6 = extractvalue { <4 x float>, <4 x float>, <4 x float>, <4 x float> } %2, 3
+  %7 = fmul fast <4 x float> %3, %3
+  %8 = fmul fast <4 x float> %4, %4
+  %9 = fadd fast <4 x float> %8, %7
+  %10 = fmul fast <4 x float> %5, %5
+  %11 = fmul fast <4 x float> %6, %6
+  %12 = fadd fast <4 x float> %11, %10
+  %13 = getelementptr inbounds float, ptr %pDst, i64 %1
+  %interleaved.vec = call <8 x float> @llvm.vector.interleave2.v8f32(<4 x float> %9, <4 x float> %12)
+  store <8 x float> %interleaved.vec, ptr %13, align 4
+  %index.next = add i64 %index, 4
+  %14 = icmp eq i64 %index.next, 1024
+  br i1 %14, label %while.end, label %vector.body
+
+while.end:                                        ; preds = %vector.body
+  ret void
+}
+
+
 ; This example has store(shuffle(shuffle(... that would be better to be treated
 ; as a single store. This avoids the vld2 for data that is already shuffled.
 define void @transpose_s16_8x8_simpler(ptr nocapture noundef %a) {
 ; CHECK-LABEL: transpose_s16_8x8_simpler:
-; CHECK:       .Lfunc_begin7:
+; CHECK:       .Lfunc_begin14:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    ldp q0, q1, [x0]
@@ -366,7 +697,7 @@ entry:
 ; Same as above with some different shuffles
 define void @transpose_s16_8x8_simpler2(ptr nocapture noundef %a) {
 ; CHECK-LABEL: transpose_s16_8x8_simpler2:
-; CHECK:       .Lfunc_begin8:
+; CHECK:       .Lfunc_begin15:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    ldp q0, q1, [x0]
@@ -419,7 +750,7 @@ entry:
 
 define void @transpose_s16_8x8(ptr nocapture noundef %0, ptr nocapture noundef %1, ptr nocapture noundef %2, ptr nocapture noundef %3, ptr nocapture noundef %4, ptr nocapture noundef %5, ptr nocapture noundef %6, ptr nocapture noundef %7) {
 ; CHECK-LABEL: transpose_s16_8x8:
-; CHECK:       .Lfunc_begin9:
+; CHECK:       .Lfunc_begin16:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    ldr q0, [x0]
@@ -512,7 +843,7 @@ define void @transpose_s16_8x8(ptr nocapture noundef %0, ptr nocapture noundef %
 
 define void @transpose_s16_8x8_(ptr nocapture noundef %0) {
 ; CHECK-LABEL: transpose_s16_8x8_:
-; CHECK:       .Lfunc_begin10:
+; CHECK:       .Lfunc_begin17:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    ldp q0, q1, [x0]
@@ -608,7 +939,7 @@ define void @transpose_s16_8x8_(ptr nocapture noundef %0) {
 
 define void @store_factor2(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1) {
 ; CHECK-LABEL: store_factor2:
-; CHECK:       .Lfunc_begin11:
+; CHECK:       .Lfunc_begin18:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    trn1 v2.4s, v0.4s, v1.4s
@@ -622,9 +953,26 @@ define void @store_factor2(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1) {
   ret void
 }
 
+define void @store_factor2_intrinsic(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1) {
+; CHECK-LABEL: store_factor2_intrinsic:
+; CHECK:       .Lfunc_begin19:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0:
+; CHECK-NEXT:    trn1 v2.4s, v0.4s, v1.4s
+; CHECK-NEXT:    trn1 v3.4s, v1.4s, v0.4s
+; CHECK-NEXT:    st2 { v2.4s, v3.4s }, [x0]
+; CHECK-NEXT:    ret
+  %v0 = shufflevector <4 x i32> %a0, <4 x i32> %a1, <4 x i32> <i32 0, i32 4, i32 2, i32 6>
+  %v1 = shufflevector <4 x i32> %a1, <4 x i32> %a0, <4 x i32> <i32 0, i32 4, i32 2, i32 6>
+  %interleaved.vec = call <8 x i32> @llvm.vector.interleave2.v8i32(<4 x i32> %v0, <4 x i32> %v1)
+  store <8 x i32> %interleaved.vec, ptr %ptr, align 4
+  ret void
+}
+
+
 define void @store_factor2_high(ptr %ptr, ptr %ptr2, <4 x i32> %a0, <4 x i32> %a1) {
 ; CHECK-LABEL: store_factor2_high:
-; CHECK:       .Lfunc_begin12:
+; CHECK:       .Lfunc_begin20:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    trn1 v2.4s, v0.4s, v1.4s
@@ -646,7 +994,7 @@ define void @store_factor2_high(ptr %ptr, ptr %ptr2, <4 x i32> %a0, <4 x i32> %a
 
 define void @store_factor2_high2(ptr %ptr, ptr %ptr2, <4 x i32> %a0, <4 x i32> %a1) {
 ; CHECK-LABEL: store_factor2_high2:
-; CHECK:       .Lfunc_begin13:
+; CHECK:       .Lfunc_begin21:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    zip1 v2.4s, v0.4s, v1.4s
@@ -664,7 +1012,7 @@ define void @store_factor2_high2(ptr %ptr, ptr %ptr2, <4 x i32> %a0, <4 x i32> %
 
 define void @store_factor3(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1, <4 x i32> %a2) {
 ; CHECK-LABEL: store_factor3:
-; CHECK:       .Lfunc_begin14:
+; CHECK:       .Lfunc_begin22:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    ext v3.16b, v0.16b, v1.16b, #12
@@ -688,9 +1036,34 @@ define void @store_factor3(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1, <4 x i32> %a2
   ret void
 }
 
+define void @store_factor3_intrinsic(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1, <4 x i32> %a2) {
+; CHECK-LABEL: store_factor3_intrinsic:
+; CHECK:       .Lfunc_begin23:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0:
+; CHECK-NEXT:    ext v3.16b, v0.16b, v1.16b, #12
+; CHECK-NEXT:    ext v6.16b, v1.16b, v2.16b, #12
+; CHECK-NEXT:    zip2 v3.4s, v0.4s, v3.4s
+; CHECK-NEXT:    mov v3.s[0], v0.s[0]
+; CHECK-NEXT:    ext v0.16b, v2.16b, v0.16b, #12
+; CHECK-NEXT:    zip2 v4.4s, v1.4s, v6.4s
+; CHECK-NEXT:    mov v4.s[0], v1.s[0]
+; CHECK-NEXT:    zip2 v5.4s, v2.4s, v0.4s
+; CHECK-NEXT:    mov v5.s[0], v2.s[0]
+; CHECK-NEXT:    st3 { v3.4s, v4.4s, v5.4s }, [x0]
+; CHECK-NEXT:    ret
+  %v0 = shufflevector <4 x i32> %a0, <4 x i32> %a1, <4 x i32> <i32 0, i32 5, i32 3, i32 6>
+  %v1 = shufflevector <4 x i32> %a1, <4 x i32> %a2, <4 x i32> <i32 0, i32 5, i32 3, i32 6>
+  %v2 = shufflevector <4 x i32> %a2, <4 x i32> %a0, <4 x i32> <i32 0, i32 5, i32 3, i32 6>
+  %interleaved.vec = call <12 x i32> @llvm.vector.interleave3.v12i32(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2)
+  store <12 x i32> %interleaved.vec, ptr %ptr, align 4
+  ret void
+}
+
+
 define void @store_factor4(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1, <4 x i32> %a2, <4 x i32> %a3) {
 ; CHECK-LABEL: store_factor4:
-; CHECK:       .Lfunc_begin15:
+; CHECK:       .Lfunc_begin24:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0:
 ; CHECK-NEXT:    trn1 v4.4s, v0.4s, v1.4s
@@ -710,9 +1083,30 @@ define void @store_factor4(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1, <4 x i32> %a2
   ret void
 }
 
+define void @store_factor4_intrinsic(ptr %ptr, <4 x i32> %a0, <4 x i32> %a1, <4 x i32> %a2, <4 x i32> %a3) {
+; CHECK-LABEL: store_factor4_intrinsic:
+; CHECK:       .Lfunc_begin25:
+; CHECK-NEXT:    .cfi_startproc
+; CHECK-NEXT:  // %bb.0:
+; CHECK-NEXT:    trn1 v4.4s, v0.4s, v1.4s
+; CHECK-NEXT:    trn1 v5.4s, v1.4s, v2.4s
+; CHECK-NEXT:    trn1 v6.4s, v2.4s, v3.4s
+; CHECK-NEXT:    trn1 v7.4s, v3.4s, v0.4s
+; CHECK-NEXT:    st4 { v4.4s, v5.4s, v6.4s, v7.4s }, [x0]
+; CHECK-NEXT:    ret
+  %v0 = shufflevector <4 x i32> %a0, <4 x i32> %a1, <4 x i32> <i32 0, i32 4, i32 2, i32 6>
+  %v1 = shufflevector <4 x i32> %a1, <4 x i32> %a2, <4 x i32> <i32 0, i32 4, i32 2, i32 6>
+  %v2 = shufflevector <4 x i32> %a2, <4 x i32> %a3, <4 x i32> <i32 0, i32 4, i32 2, i32 6>
+  %v3 = shufflevector <4 x i32> %a3, <4 x i32> %a0, <4 x i32> <i32 0, i32 4, i32 2, i32 6>
+  %interleaved.vec = call <16 x i32> @llvm.vector.interleave4.v16i32(<4 x i32> %v0, <4 x i32> %v1, <4 x i32> %v2, <4 x i32> %v3)
+  store <16 x i32> %interleaved.vec, ptr %ptr, align 4
+  ret void
+}
+
+
 define void @debuginfo(ptr nocapture noundef writeonly %buf, <8 x i16> noundef %a) {
 ; CHECK-LABEL: debuginfo:
-; CHECK:       .Lfunc_begin16:
+; CHECK:       .Lfunc_begin26:
 ; CHECK-NEXT:    .cfi_startproc
 ; CHECK-NEXT:  // %bb.0: // %entry
 ; CHECK-NEXT:    movi v1.2d, #0000000000000000
@@ -729,6 +1123,8 @@ entry:
   store <8 x i16> %vzip1.i, ptr %add.ptr, align 4
   ret void
 }
+
+
 
 declare void @llvm.dbg.value(metadata, metadata, metadata)
 

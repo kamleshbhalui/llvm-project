@@ -22,6 +22,21 @@ define void @hang_when_merging_stores_after_legalisation(ptr %a, <2 x i32> %b) v
   ret void
 }
 
+define void @hang_when_merging_stores_after_legalisation_intrinsic(ptr %a, <2 x i32> %b) vscale_range(2,2) #0 {
+; CHECK-LABEL: hang_when_merging_stores_after_legalisation_intrinsic:
+; CHECK:       // %bb.0:
+; CHECK-NEXT:    // kill: def $d0 killed $d0 def $q0
+; CHECK-NEXT:    dup v0.4s, v0.s[0]
+; CHECK-NEXT:    mov v1.16b, v0.16b
+; CHECK-NEXT:    st2 { v0.4s, v1.4s }, [x0]
+; CHECK-NEXT:    ret
+  %splat = shufflevector <2 x i32> %b, <2 x i32> poison, <4 x i32> zeroinitializer
+  %interleaved.vec = call <8 x i32> @llvm.vector.interleave2.v8i32(<4 x i32>%splat, <4 x i32>%splat)
+  store <8 x i32> %interleaved.vec, ptr %a, align 4
+  ret void
+}
+
+
 ; Ensure we don't crash when trying to lower a shuffle via an extract
 define void @crash_when_lowering_extract_shuffle(ptr %dst, i1 %cond) vscale_range(2,2) #0 {
 ; CHECK-LABEL: crash_when_lowering_extract_shuffle:
